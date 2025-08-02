@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36301.6 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.DurableFunctions", "WorkflowDemos.DurableFunctions\WorkflowDemos.DurableFunctions.csproj", "{776593B8-75BC-445D-92AB-B54A5FE8378D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{776593B8-75BC-445D-92AB-B54A5FE8378D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{776593B8-75BC-445D-92AB-B54A5FE8378D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{776593B8-75BC-445D-92AB-B54A5FE8378D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{776593B8-75BC-445D-92AB-B54A5FE8378D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BFA6AE9C-E349-4013-BD89-50731051BF4D}
+	EndGlobalSection
+EndGlobal

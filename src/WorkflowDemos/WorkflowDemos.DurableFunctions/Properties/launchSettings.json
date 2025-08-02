@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "WorkflowDemos.DurableFunctions": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7260",
+      "launchBrowser": false
+    }
+  }
+}
