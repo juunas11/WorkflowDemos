@@ -74,11 +74,12 @@ public static class ContentModerationFunctions
     }
 
     [Function(nameof(CheckComment))]
-    public static string CheckComment(
+    public static bool CheckComment(
         [ActivityTrigger] string comment,
         FunctionContext executionContext)
     {
         // TODO
+        return true;
     }
 
     [Function(nameof(ManualModerationOrchestrator))]

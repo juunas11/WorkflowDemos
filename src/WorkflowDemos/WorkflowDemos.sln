@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36301.6 d17.14
+VisualStudioVersion = 17.14.36301.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.DurableFunctions", "WorkflowDemos.DurableFunctions\WorkflowDemos.DurableFunctions.csproj", "{776593B8-75BC-445D-92AB-B54A5FE8378D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Email", "WorkflowDemos.Email\WorkflowDemos.Email.csproj", "{08EEDCE2-8749-46B8-A607-D218E6896599}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{776593B8-75BC-445D-92AB-B54A5FE8378D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{776593B8-75BC-445D-92AB-B54A5FE8378D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{776593B8-75BC-445D-92AB-B54A5FE8378D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08EEDCE2-8749-46B8-A607-D218E6896599}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08EEDCE2-8749-46B8-A607-D218E6896599}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08EEDCE2-8749-46B8-A607-D218E6896599}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08EEDCE2-8749-46B8-A607-D218E6896599}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
