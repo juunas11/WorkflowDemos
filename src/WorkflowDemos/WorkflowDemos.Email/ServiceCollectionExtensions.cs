@@ -10,6 +10,9 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IEmailService, MailgunEmailService>();
         services.AddFluentEmail(fromEmail)
             .AddMailGunSender(domain, apiKey);
+
+        //services.AddSingleton<IEmailService, MockEmailService>();
+
         return services;
     }
 }

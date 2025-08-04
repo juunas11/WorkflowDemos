@@ -20,5 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WorkflowDemos.Email\WorkflowDemos.Email.csproj" />
+    <ProjectReference Include="..\WorkflowDemos.Moderation\WorkflowDemos.Moderation.csproj" />
   </ItemGroup>
 </Project>

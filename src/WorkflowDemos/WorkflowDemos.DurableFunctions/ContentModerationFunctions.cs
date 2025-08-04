@@ -3,13 +3,17 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using WorkflowDemos.Email;
+using WorkflowDemos.Moderation;
 
 namespace WorkflowDemos.DurableFunctions;
 
-public static class ContentModerationFunctions
+public class ContentModerationFunctions(
+    IEmailService emailService,
+    IContentModerationService contentModerationService)
 {
     [Function(nameof(MainOrchestrator))]
-    public static async Task<List<int>> MainOrchestrator(
+    public async Task<List<int>> MainOrchestrator(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
         ILogger logger = context.CreateReplaySafeLogger(nameof(ContentModerationFunctions));
@@ -74,16 +78,15 @@ public static class ContentModerationFunctions
     }
 
     [Function(nameof(CheckComment))]
-    public static bool CheckComment(
+    public async Task<bool> CheckComment(
         [ActivityTrigger] string comment,
         FunctionContext executionContext)
     {
-        // TODO
-        return true;
+        return await contentModerationService.CheckCommentAsync(comment);
     }
 
     [Function(nameof(ManualModerationOrchestrator))]
-    public static async Task<bool> ManualModerationOrchestrator(
+    public async Task<bool> ManualModerationOrchestrator(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
         ILogger logger = context.CreateReplaySafeLogger(nameof(ManualModerationOrchestrator));
@@ -103,14 +106,14 @@ public static class ContentModerationFunctions
     }
 
     [Function(nameof(EmailModerator))]
-    public static void EmailModerator(
+    public async Task EmailModerator(
         [ActivityTrigger] string comment,
         FunctionContext executionContext)
     {
     }
 
     [Function(nameof(StoreAcceptedComments))]
-    public static async Task StoreAcceptedComments(
+    public async Task StoreAcceptedComments(
         [ActivityTrigger] List<string> acceptedComments,
         FunctionContext executionContext)
     {
@@ -120,7 +123,7 @@ public static class ContentModerationFunctions
     }
 
     [Function("MainOrchestrator_HttpStart")]
-    public static async Task<HttpResponseData> HttpStart(
+    public static async Task<HttpResponseData> MainOrchestratorHttpStart(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
         [DurableClient] DurableTaskClient client,
         FunctionContext executionContext)
@@ -140,8 +143,34 @@ public static class ContentModerationFunctions
         return await client.CreateCheckStatusResponseAsync(req, instanceId);
     }
 
+    [Function("ManualModerationOrchestrator_SendManualModerationResponse")]
+    public static async Task<HttpResponseData> ManualModerationOrchestratorSendManualModerationResponse(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
+        [DurableClient] DurableTaskClient client,
+        FunctionContext executionContext)
+    {
+        ILogger logger = executionContext.GetLogger("ManualModerationOrchestrator_SendManualModerationResponse");
+
+        var requestBody = await req.ReadFromJsonAsync<ManualModerationResponse>();
+
+        await client.RaiseEventAsync(
+            requestBody!.InstanceId,
+            "ManualModerationResponse",
+            requestBody.IsApproved);
+
+        logger.LogInformation("Raised event to orchestration with ID = '{instanceId}'.", requestBody.InstanceId);
+
+        return req.CreateResponse(System.Net.HttpStatusCode.NoContent);
+    }
+
     public class OrchestrationInput
     {
         public required List<string> Comments { get; set; }
+    }
+
+    public class ManualModerationResponse
+    {
+        public required bool IsApproved { get; set; }
+        public required string InstanceId { get; set; }
     }
 }

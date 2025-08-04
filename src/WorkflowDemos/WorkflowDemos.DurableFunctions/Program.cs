@@ -3,6 +3,8 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using WorkflowDemos.Email;
+using WorkflowDemos.Moderation;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -15,6 +17,8 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights();
+    .ConfigureFunctionsApplicationInsights()
+    .AddMailgunEmailService(builder.Configuration["Mailgun:FromEmail"]!, builder.Configuration["Mailgun:Domain"]!, builder.Configuration["Mailgun:ApiKey"]!)
+    .AddAzureContentSafetyModeration(builder.Configuration["AzureContentSafety:Endpoint"]!, builder.Configuration["AzureContentSafety:ApiKey"]!);
 
 builder.Build().Run();
