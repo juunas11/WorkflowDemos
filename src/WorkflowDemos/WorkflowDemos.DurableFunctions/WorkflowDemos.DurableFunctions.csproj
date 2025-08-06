@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.7" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\WorkflowDemos.DataStorage\WorkflowDemos.DataStorage.csproj" />
     <ProjectReference Include="..\WorkflowDemos.Email\WorkflowDemos.Email.csproj" />
     <ProjectReference Include="..\WorkflowDemos.Moderation\WorkflowDemos.Moderation.csproj" />
   </ItemGroup>
