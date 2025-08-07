@@ -2,5 +2,7 @@
 
 public interface IDataStorageService
 {
-    Task SaveEntityAsync(WorkflowEntity entity);
+    Task CreateEntityAsync(WorkflowEntity entity);
+    Task<WorkflowEntity?> GetEntityAsync(string partitionKey, string rowKey);
+    Task UpdateEntityAsync(WorkflowEntity entity);
 }

@@ -3,6 +3,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using WorkflowDemos.DataStorage;
 using WorkflowDemos.Email;
 using WorkflowDemos.Moderation;
 
@@ -10,7 +11,8 @@ namespace WorkflowDemos.DurableFunctions;
 
 public class ContentModerationFunctions(
     IEmailService emailService,
-    IContentModerationService contentModerationService)
+    IContentModerationService contentModerationService,
+    IDataStorageService dataStorageService)
 {
     [Function(nameof(MainOrchestrator))]
     public async Task<List<int>> MainOrchestrator(
