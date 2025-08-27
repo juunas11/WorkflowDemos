@@ -1,4 +1,4 @@
-﻿namespace WorkflowDemos.Email;
+﻿namespace WorkflowDemos.Shared.Email;
 
 public interface IEmailService
 {

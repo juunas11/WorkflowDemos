@@ -3,9 +3,9 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using WorkflowDemos.DataStorage;
-using WorkflowDemos.Email;
-using WorkflowDemos.Moderation;
+using WorkflowDemos.Shared.DataStorage;
+using WorkflowDemos.Shared.Email;
+using WorkflowDemos.Shared.Moderation;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 

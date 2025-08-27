@@ -1,5 +1,5 @@
 ﻿
-namespace WorkflowDemos.Moderation;
+namespace WorkflowDemos.Shared.Moderation;
 
 public interface IContentModerationService
 {

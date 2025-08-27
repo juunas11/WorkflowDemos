@@ -1,4 +1,4 @@
-﻿namespace WorkflowDemos.DataStorage;
+﻿namespace WorkflowDemos.Shared.DataStorage;
 
 public interface IDataStorageService
 {

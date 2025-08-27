@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace WorkflowDemos.Email;
+namespace WorkflowDemos.Shared.Email;
 
 public class MockEmailService(ILogger<MockEmailService> logger) : IEmailService
 {

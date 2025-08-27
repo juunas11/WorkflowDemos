@@ -4,9 +4,9 @@ using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using WorkflowDemos.DataStorage;
-using WorkflowDemos.Email;
-using WorkflowDemos.Moderation;
+using WorkflowDemos.Shared.DataStorage;
+using WorkflowDemos.Shared.Email;
+using WorkflowDemos.Shared.Moderation;
 
 namespace WorkflowDemos.DurableFunctions;
 
@@ -75,7 +75,12 @@ public class ContentModerationFunctions(
         logger.LogInformation("Accepted comments indices after manual moderation: {AcceptedIndices}", string.Join(", ", acceptedIndices));
 
         // Add accepted comments to a database / Storage Table
-        await context.CallActivityAsync(nameof(StoreAcceptedComments), input.Comments.Where((_, index) => acceptedIndices.Contains(index)).ToList());
+        await context.CallActivityAsync(nameof(MarkCommentsAccepted), new StoreAcceptedCommentsInput
+        {
+            AcceptedComments = input.Comments.Where((_, index) => acceptedIndices.Contains(index)).ToList(),
+            // Umm
+            //InstanceId = context.InstanceId
+        });
 
         // Return indices of accepted comments
         return acceptedIndices;
@@ -101,10 +106,10 @@ public class ContentModerationFunctions(
 
         // Simulate sending an email to a moderator and waiting for a response
         await context.CallActivityAsync(nameof(EmailModerator), context.InstanceId);
-        logger.LogInformation("Manual moderation result for comment '{Comment}': {IsApproved}", comment, isApproved);
 
         // TODO: Handle timeout error
         var isApproved = await context.WaitForExternalEvent<bool>("ManualModerationResponse", TimeSpan.FromDays(1));
+        logger.LogInformation("Manual moderation result for comment '{Comment}': {IsApproved}", comment, isApproved);
 
         return isApproved;
     }
@@ -120,28 +125,54 @@ public class ContentModerationFunctions(
             $"A comment requires manual moderation. Please review it in the moderation portal: https://example.com/moderation.\n\nPartition key: DurableFunctions\n\nRow key: {instanceId}");
     }
 
-    [Function(nameof(StoreAcceptedComments))]
-    public async Task StoreAcceptedComments(
-        [ActivityTrigger] List<string> acceptedComments,
+    [Function(nameof(StoreComments))]
+    public async Task StoreComments(
+        [ActivityTrigger] List<CommentIdAndText> comments,
         FunctionContext executionContext)
     {
-        ILogger logger = executionContext.GetLogger(nameof(StoreAcceptedComments));
-        logger.LogInformation("Storing {Count} accepted comments.", acceptedComments.Count);
+        foreach (var comment in comments)
+        {
+            await dataStorageService.CreateEntityAsync(new WorkflowEntity
+            {
+                PartitionKey = "DurableFunctions",
+                RowKey = comment.Id.ToString(),
+                Comment = comment.Text,
+                State = WorkflowState.WaitingApproval,
+                //ApprovalUrl = "http://localhost:7260/api/ManualModerationOrchestrator_SendManualModerationResponse",
+                //ApproveRequestBody = $$"""
+                //{
+                //    "IsApproved": true,
+                //    "CommentId": "{CommentId}"
+                //}
+                //""",
+                //RejectRequestBody = """
+                //{
+                //}
+                //"""
+            });
+        }
+    }
+
+    [Function(nameof(MarkCommentsAccepted))]
+    public async Task MarkCommentsAccepted(
+        [ActivityTrigger] List<CommentIdAndText> acceptedComments,
+        FunctionContext executionContext)
+    {
+        ILogger logger = executionContext.GetLogger(nameof(MarkCommentsAccepted));
+        logger.LogInformation("Marking {Count} comments as accepted.", acceptedComments.Count);
 
         foreach (var comment in acceptedComments)
         {
-            var entity = new WorkflowEntity
+            var entity = await dataStorageService.GetEntityAsync("DurableFunctions", comment.Id.ToString());
+            if (entity == null)
             {
-                PartitionKey = "DurableFunctions",
-                RowKey = instanceId,
-                Comment = comment,
-                ApprovalUrl = "http://localhost:7260/api/ManualModerationOrchestrator_SendManualModerationResponse",
-                ApproveRequestBody = "",
-                RejectRequestBody = "",
-                State = WorkflowState.Approved,
-            };
-            await dataStorageService.CreateEntityAsync(entity);
-            logger.LogInformation("Stored comment: {Comment}", comment);
+                logger.LogWarning("No entity found for comment ID: {CommentId}", comment.Id);
+                continue;
+            }
+
+            entity.State = WorkflowState.Approved;
+            await dataStorageService.UpdateEntityAsync(entity);
+            logger.LogInformation("Marked comment '{CommentText}' (ID: {CommentId}) as accepted.", comment.Text, comment.Id);
         }
     }
 
@@ -195,5 +226,12 @@ public class ContentModerationFunctions(
     {
         public required bool IsApproved { get; set; }
         public required string InstanceId { get; set; }
+        public required string CommentId { get; set; }
+    }
+
+    public class CommentIdAndText
+    {
+        public required Guid Id { get; set; }
+        public required string Text { get; set; }
     }
 }

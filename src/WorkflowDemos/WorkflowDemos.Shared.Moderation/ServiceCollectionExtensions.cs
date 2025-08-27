@@ -2,7 +2,7 @@
 using Azure.AI.ContentSafety;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WorkflowDemos.Moderation;
+namespace WorkflowDemos.Shared.Moderation;
 
 public static class ServiceCollectionExtensions
 {

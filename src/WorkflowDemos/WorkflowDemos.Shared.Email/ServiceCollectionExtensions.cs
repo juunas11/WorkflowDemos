@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WorkflowDemos.Email;
+namespace WorkflowDemos.Shared.Email;
 
 public static class ServiceCollectionExtensions
 {

@@ -1,7 +1,7 @@
 ﻿using Azure.Data.Tables;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WorkflowDemos.DataStorage;
+namespace WorkflowDemos.Shared.DataStorage;
 
 public static class ServiceCollectionExtensions
 {

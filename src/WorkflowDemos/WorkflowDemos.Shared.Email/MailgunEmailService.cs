@@ -1,6 +1,6 @@
 ﻿using FluentEmail.Core;
 
-namespace WorkflowDemos.Email;
+namespace WorkflowDemos.Shared.Email;
 
 public class MailgunEmailService(IFluentEmail fluentEmail) : IEmailService
 {

@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 
-namespace WorkflowDemos.DataStorage;
+namespace WorkflowDemos.Shared.DataStorage;
 
 public class TableStorageService(
     TableServiceClient tableServiceClient) : IDataStorageService

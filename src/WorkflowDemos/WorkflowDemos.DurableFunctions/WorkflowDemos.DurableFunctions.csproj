@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	  <UserSecretsId>WorkflowDemos</UserSecretsId>
+	<UserSecretsId>WorkflowDemos</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -19,8 +19,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.7" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WorkflowDemos.DataStorage\WorkflowDemos.DataStorage.csproj" />
-    <ProjectReference Include="..\WorkflowDemos.Email\WorkflowDemos.Email.csproj" />
-    <ProjectReference Include="..\WorkflowDemos.Moderation\WorkflowDemos.Moderation.csproj" />
+    <ProjectReference Include="..\WorkflowDemos.Shared.DataStorage\WorkflowDemos.Shared.DataStorage.csproj" />
+    <ProjectReference Include="..\WorkflowDemos.Shared.Email\WorkflowDemos.Shared.Email.csproj" />
+    <ProjectReference Include="..\WorkflowDemos.Shared.Moderation\WorkflowDemos.Shared.Moderation.csproj" />
   </ItemGroup>
 </Project>

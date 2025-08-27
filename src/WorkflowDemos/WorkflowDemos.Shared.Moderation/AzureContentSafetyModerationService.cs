@@ -1,6 +1,6 @@
 ﻿using Azure.AI.ContentSafety;
 
-namespace WorkflowDemos.Moderation;
+namespace WorkflowDemos.Shared.Moderation;
 
 public class AzureContentSafetyModerationService(ContentSafetyClient contentSafetyClient) : IContentModerationService
 {

@@ -5,11 +5,15 @@ VisualStudioVersion = 17.14.36301.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.DurableFunctions", "WorkflowDemos.DurableFunctions\WorkflowDemos.DurableFunctions.csproj", "{776593B8-75BC-445D-92AB-B54A5FE8378D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Email", "WorkflowDemos.Email\WorkflowDemos.Email.csproj", "{08EEDCE2-8749-46B8-A607-D218E6896599}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Shared.Email", "WorkflowDemos.Shared.Email\WorkflowDemos.Shared.Email.csproj", "{08EEDCE2-8749-46B8-A607-D218E6896599}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Moderation", "WorkflowDemos.Moderation\WorkflowDemos.Moderation.csproj", "{A66617D5-B0F9-4D37-961A-BD086AB78CA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Shared.Moderation", "WorkflowDemos.Shared.Moderation\WorkflowDemos.Shared.Moderation.csproj", "{A66617D5-B0F9-4D37-961A-BD086AB78CA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.DataStorage", "WorkflowDemos.DataStorage\WorkflowDemos.DataStorage.csproj", "{04323DD9-0E83-464C-8BA6-69F6F42A6A77}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Shared.DataStorage", "WorkflowDemos.Shared.DataStorage\WorkflowDemos.Shared.DataStorage.csproj", "{04323DD9-0E83-464C-8BA6-69F6F42A6A77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Elsa", "WorkflowDemos.Elsa\WorkflowDemos.Elsa.csproj", "{124E6A9C-9756-47D2-A07F-10EAA63C88D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Temporal", "WorkflowDemos.Temporal\WorkflowDemos.Temporal.csproj", "{13052BB9-4C60-4A9E-BC79-EC202E9371C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +37,14 @@ Global
 		{04323DD9-0E83-464C-8BA6-69F6F42A6A77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04323DD9-0E83-464C-8BA6-69F6F42A6A77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04323DD9-0E83-464C-8BA6-69F6F42A6A77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{124E6A9C-9756-47D2-A07F-10EAA63C88D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{124E6A9C-9756-47D2-A07F-10EAA63C88D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{124E6A9C-9756-47D2-A07F-10EAA63C88D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{124E6A9C-9756-47D2-A07F-10EAA63C88D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13052BB9-4C60-4A9E-BC79-EC202E9371C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13052BB9-4C60-4A9E-BC79-EC202E9371C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13052BB9-4C60-4A9E-BC79-EC202E9371C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13052BB9-4C60-4A9E-BC79-EC202E9371C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
