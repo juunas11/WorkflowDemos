@@ -13,7 +13,7 @@ var configuration = new ConfigurationBuilder()
     .Build();
 
 var services = new ServiceCollection();
-services.AddSingleton(configuration);
+services.AddSingleton<IConfiguration>(configuration);
 services.AddMailgunEmailService(configuration["Mailgun:FromEmail"]!, configuration["Mailgun:Domain"]!, configuration["Mailgun:ApiKey"]!);
 services.AddAzureContentSafetyModeration(configuration["AzureContentSafety:Endpoint"]!, configuration["AzureContentSafety:ApiKey"]!);
 services.AddTableStorageService(configuration["Storage:ConnectionString"]!);
@@ -39,6 +39,7 @@ using var worker = new TemporalWorker(
     new TemporalWorkerOptions(taskQueue: "CONTENT_MODERATION_TASK_QUEUE")
         .AddAllActivities(activities)
         .AddWorkflow<ContentModerationWorkflow>()
+        .AddWorkflow<ManualModerationWorkflow>()
 );
 
 Console.WriteLine("Running worker...");

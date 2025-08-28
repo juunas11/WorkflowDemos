@@ -11,6 +11,12 @@ public class ManualModerationWorkflow
     [WorkflowRun]
     public async Task<Comment> RunAsync(Comment comment)
     {
+        if (comment.ApprovedByAi)
+        {
+            // Already approved by AI, no need for manual review
+            return comment;
+        }
+
         var workflowId = Workflow.Info.WorkflowId;
         var defaultActivityOptions = new ActivityOptions
         {
@@ -41,14 +47,16 @@ public class ManualModerationWorkflow
     }
 
     [WorkflowSignal]
-    public void Approve()
+    public Task Approve()
     {
         approved = true;
+        return Task.CompletedTask;
     }
 
     [WorkflowSignal]
-    public void Reject()
+    public Task Reject()
     {
         rejected = true;
+        return Task.CompletedTask;
     }
 }

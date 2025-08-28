@@ -17,73 +17,39 @@ public class ContentModerationFunctions(
     IConfiguration configuration)
 {
     [Function(nameof(MainOrchestrator))]
-    public async Task<List<int>> MainOrchestrator(
+    public async Task<List<string>> MainOrchestrator(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
         ILogger logger = context.CreateReplaySafeLogger(nameof(ContentModerationFunctions));
 
         // Get set of comments as input
-        var input = context.GetInput<OrchestrationInput>();
+        var input = context.GetInput<WorkflowInput>();
         if (input?.Comments == null || input.Comments.Count == 0)
         {
             logger.LogInformation("No comments provided for moderation.");
-            return new List<int>();
+            return new List<string>();
         }
 
-        logger.LogInformation("Received {CommentCount} comments for moderation.", input.Comments.Count);
+        var comments = input.Comments;
+        logger.LogInformation("Received {CommentCount} comments for moderation.", comments.Count);
 
         // Run all comments through AI content filtering
-        var contentFilteringTasks = new List<Task<bool>>();
-        for (int i = 0; i < input.Comments.Count; i++)
-        {
-            // Call an activity function to check each comment
-            var contentFilteringTask = context.CallActivityAsync<bool>(nameof(CheckComment), input.Comments[i]);
-            contentFilteringTasks.Add(contentFilteringTask);
-        }
-
+        var contentFilteringTasks = comments.ConvertAll(comment => context.CallActivityAsync<Comment>(nameof(CheckComment), comment));
         // Wait for all content filtering tasks to complete
-        var results = await Task.WhenAll(contentFilteringTasks);
+        comments = (await Task.WhenAll(contentFilteringTasks)).ToList();
         logger.LogInformation("Content filtering completed for all comments.");
 
-        var acceptedIndices = results
-            .Select((result, index) => new { result, index })
-            .Where(x => x.result)
-            .Select(x => x.index)
-            .ToList();
-        logger.LogInformation("Accepted comments indices by AI: {AcceptedIndices}", string.Join(", ", acceptedIndices));
-
         // Any comments that get a negative result go into a manual approval process (email moderator, wait for response)
-        var manualApprovalTasks = new List<(int Index, Task<bool> Task)>();
-        for (int i = 0; i < input.Comments.Count; i++)
-        {
-            if (!results[i])
-            {
-                // Call a sub-orchestrator for manual approval
-                var manualApprovalTask = context.CallSubOrchestratorAsync<bool>(nameof(ManualModerationOrchestrator), input.Comments[i]);
-                manualApprovalTasks.Add((i, manualApprovalTask));
-            }
-        }
-
+        var manualApprovalTasks = comments.ConvertAll(comment => context.CallSubOrchestratorAsync<Comment>(nameof(ManualModerationOrchestrator), comment));
         // Wait for all manual approval tasks to complete
-        var manualResults = await Task.WhenAll(manualApprovalTasks.Select(x => x.Task));
+        comments = (await Task.WhenAll(manualApprovalTasks)).ToList();
         logger.LogInformation("Manual moderation completed for comments needing approval.");
-        acceptedIndices.AddRange(
-            manualResults
-                .Select((result, index) => new { result, index })
-                .Where(x => x.result)
-                .Select(x => manualApprovalTasks[x.index].Index));
-        logger.LogInformation("Accepted comments indices after manual moderation: {AcceptedIndices}", string.Join(", ", acceptedIndices));
 
-        // Add accepted comments to a database / Storage Table
-        await context.CallActivityAsync(nameof(MarkCommentsAccepted), new StoreAcceptedCommentsInput
-        {
-            AcceptedComments = input.Comments.Where((_, index) => acceptedIndices.Contains(index)).ToList(),
-            // Umm
-            //InstanceId = context.InstanceId
-        });
-
-        // Return indices of accepted comments
-        return acceptedIndices;
+        // Return accepted comments
+        return comments
+            .Where(comment => comment.ApprovedByAi || comment.ApprovedByHuman)
+            .Select(comment => comment.Text)
+            .ToList();
     }
 
     [Function(nameof(CheckComment))]
@@ -95,23 +61,30 @@ public class ContentModerationFunctions(
     }
 
     [Function(nameof(ManualModerationOrchestrator))]
-    public async Task<bool> ManualModerationOrchestrator(
+    public async Task<Comment> ManualModerationOrchestrator(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
         ILogger logger = context.CreateReplaySafeLogger(nameof(ManualModerationOrchestrator));
 
         // Get the comment to be moderated
-        var comment = context.GetInput<string>();
-        logger.LogInformation("Starting manual moderation for comment: {Comment}", comment);
+        var comment = context.GetInput<Comment>()!;
+        logger.LogInformation("Starting manual moderation for comment: {Comment}", comment.Text);
+
+        if (comment.ApprovedByAi)
+        {
+            // Already approved by AI, no need for manual review
+            return comment;
+        }
 
         // Simulate sending an email to a moderator and waiting for a response
         await context.CallActivityAsync(nameof(EmailModerator), context.InstanceId);
 
         // TODO: Handle timeout error
         var isApproved = await context.WaitForExternalEvent<bool>("ManualModerationResponse", TimeSpan.FromDays(1));
-        logger.LogInformation("Manual moderation result for comment '{Comment}': {IsApproved}", comment, isApproved);
+        logger.LogInformation("Manual moderation result for comment '{Comment}': {IsApproved}", comment.Text, isApproved);
 
-        return isApproved;
+        comment.ApprovedByHuman = isApproved;
+        return comment;
     }
 
     [Function(nameof(EmailModerator))]
@@ -184,7 +157,7 @@ public class ContentModerationFunctions(
     {
         ILogger logger = executionContext.GetLogger("MainOrchestrator_HttpStart");
 
-        var requestBody = await req.ReadFromJsonAsync<OrchestrationInput>();
+        var requestBody = await req.ReadFromJsonAsync<WorkflowInput>();
 
         string instanceId = await client.ScheduleNewOrchestrationInstanceAsync(
             nameof(MainOrchestrator),
@@ -217,21 +190,28 @@ public class ContentModerationFunctions(
         return req.CreateResponse(System.Net.HttpStatusCode.NoContent);
     }
 
-    public class OrchestrationInput
+    public class WorkflowInput
     {
-        public required List<string> Comments { get; set; }
+        public required List<Comment> Comments { get; set; }
     }
 
-    public class ManualModerationResponse
+    public class Comment
     {
-        public required bool IsApproved { get; set; }
-        public required string InstanceId { get; set; }
-        public required string CommentId { get; set; }
-    }
-
-    public class CommentIdAndText
-    {
-        public required Guid Id { get; set; }
         public required string Text { get; set; }
+        public bool ApprovedByAi { get; set; }
+        public bool ApprovedByHuman { get; set; }
     }
+
+    //public class ManualModerationResponse
+    //{
+    //    public required bool IsApproved { get; set; }
+    //    public required string InstanceId { get; set; }
+    //    public required string CommentId { get; set; }
+    //}
+
+    //public class CommentIdAndText
+    //{
+    //    public required Guid Id { get; set; }
+    //    public required string Text { get; set; }
+    //}
 }
