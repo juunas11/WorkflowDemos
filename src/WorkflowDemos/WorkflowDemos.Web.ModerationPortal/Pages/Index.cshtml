@@ -1,0 +1,57 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Moderation portal";
+}
+
+<h1>Moderation portal</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Partition key</th>
+            <th>Row key</th>
+            <th>Comment</th>
+            <th>Actions/Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>
+                    @item.PartitionKey
+                </td>
+                <td>
+                    @item.RowKey
+                </td>
+                <td>
+                    @item.Comment
+                </td>
+                <td>
+                    @if (item.State == WorkflowDemos.Shared.DataStorage.WorkflowState.WaitingApproval)
+                    {
+                        <form method="post" asp-page-handler="Approve">
+                            <input type="hidden" name="partitionKey" value="@item.PartitionKey" />
+                            <input type="hidden" name="rowKey" value="@item.RowKey" />
+                            <button type="submit">Approve</button>
+                        </form>
+                        <form method="post" asp-page-handler="Reject">
+                            <input type="hidden" name="partitionKey" value="@item.PartitionKey" />
+                            <input type="hidden" name="rowKey" value="@item.RowKey" />
+                            <button type="submit">Reject</button>
+                        </form>
+                    }
+                    else if (item.State == WorkflowDemos.Shared.DataStorage.WorkflowState.Approved)
+                    {
+                        <span>Approved</span>
+                    }
+                    else if (item.State == WorkflowDemos.Shared.DataStorage.WorkflowState.Rejected)
+                    {
+                        <span>Rejected</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

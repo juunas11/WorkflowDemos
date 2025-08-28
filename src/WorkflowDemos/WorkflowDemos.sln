@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Elsa", "Workf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Temporal", "WorkflowDemos.Temporal\WorkflowDemos.Temporal.csproj", "{13052BB9-4C60-4A9E-BC79-EC202E9371C2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.Web.ModerationPortal", "WorkflowDemos.Web.ModerationPortal\WorkflowDemos.Web.ModerationPortal.csproj", "{4F80A72D-FA0C-4769-AC1E-535C3EBF1457}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{13052BB9-4C60-4A9E-BC79-EC202E9371C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13052BB9-4C60-4A9E-BC79-EC202E9371C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13052BB9-4C60-4A9E-BC79-EC202E9371C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F80A72D-FA0C-4769-AC1E-535C3EBF1457}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F80A72D-FA0C-4769-AC1E-535C3EBF1457}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F80A72D-FA0C-4769-AC1E-535C3EBF1457}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F80A72D-FA0C-4769-AC1E-535C3EBF1457}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -34,6 +34,19 @@ public class TableStorageService(
         }
     }
 
+    public async Task<List<WorkflowEntity>> GetAllEntitiesAsync()
+    {
+        await EnsureTableExistsAsync();
+
+        var entities = new List<WorkflowEntity>();
+        await foreach (var entity in tableClient.QueryAsync<WorkflowEntity>())
+        {
+            entities.Add(entity);
+        }
+
+        return entities.OrderByDescending(e => e.Timestamp).ToList();
+    }
+
     private async ValueTask EnsureTableExistsAsync()
     {
         if (isInitialized)
