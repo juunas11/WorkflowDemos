@@ -6,11 +6,11 @@ public class OrchestratorEventSender(
     private readonly Dictionary<string, IOrchestratorEventService> servicesByPartitionKey =
         orchestratorEventServices.ToDictionary(s => s.PartitionKey, StringComparer.OrdinalIgnoreCase);
 
-    public async Task ApproveAsync(string partitionKey, string rowKey)
+    public async Task ApproveAsync(string partitionKey, string workflowId)
     {
         if (servicesByPartitionKey.TryGetValue(partitionKey, out var service))
         {
-            await service.ApproveAsync(rowKey);
+            await service.ApproveAsync(workflowId);
         }
         else
         {
@@ -18,11 +18,11 @@ public class OrchestratorEventSender(
         }
     }
 
-    public async Task RejectAsync(string partitionKey, string rowKey)
+    public async Task RejectAsync(string partitionKey, string workflowId)
     {
         if (servicesByPartitionKey.TryGetValue(partitionKey, out var service))
         {
-            await service.RejectAsync(rowKey);
+            await service.RejectAsync(workflowId);
         }
         else
         {

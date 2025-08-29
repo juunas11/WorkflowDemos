@@ -6,16 +6,14 @@ public class TemporalEventService(ITemporalClient temporalClient) : IOrchestrato
 {
     public string PartitionKey => "Temporal";
 
-    public async Task ApproveAsync(string rowKey)
+    public async Task ApproveAsync(string workflowId)
     {
-        var workflowId = rowKey;
         var handle = temporalClient.GetWorkflowHandle(workflowId);
         await handle.SignalAsync("Approve", []);
     }
 
-    public async Task RejectAsync(string rowKey)
+    public async Task RejectAsync(string workflowId)
     {
-        var workflowId = rowKey;
         var handle = temporalClient.GetWorkflowHandle(workflowId);
         await handle.SignalAsync("Reject", []);
     }

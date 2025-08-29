@@ -9,22 +9,22 @@ namespace WorkflowDemos.Web.ModerationPortal.Pages
         IDataStorageService dataStorageService,
         OrchestratorEventSender orchestratorEventSender) : PageModel
     {
-        public List<WorkflowEntity> Items { get; set; } = [];
+        public List<CommentEntity> Items { get; set; } = [];
 
         public async Task OnGet()
         {
             Items = await dataStorageService.GetAllEntitiesAsync();
         }
 
-        public async Task<IActionResult> OnPostApprove(string partitionKey, string rowKey)
+        public async Task<IActionResult> OnPostApprove(string partitionKey, string workflowId)
         {
-            await orchestratorEventSender.ApproveAsync(partitionKey, rowKey);
+            await orchestratorEventSender.ApproveAsync(partitionKey, workflowId);
             return RedirectToPage();
         }
 
-        public async Task<IActionResult> OnPostReject(string partitionKey, string rowKey)
+        public async Task<IActionResult> OnPostReject(string partitionKey, string workflowId)
         {
-            await orchestratorEventSender.RejectAsync(partitionKey, rowKey);
+            await orchestratorEventSender.RejectAsync(partitionKey, workflowId);
             return RedirectToPage();
         }
     }

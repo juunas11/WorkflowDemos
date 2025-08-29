@@ -105,12 +105,12 @@ public class ContentModerationFunctions(
     {
         foreach (var comment in comments)
         {
-            await dataStorageService.CreateEntityAsync(new WorkflowEntity
+            await dataStorageService.CreateEntityAsync(new CommentEntity
             {
                 PartitionKey = "DurableFunctions",
                 RowKey = comment.Id.ToString(),
                 Comment = comment.Text,
-                State = WorkflowState.WaitingApproval,
+                State = ModerationState.WaitingApproval,
                 //ApprovalUrl = "http://localhost:7260/api/ManualModerationOrchestrator_SendManualModerationResponse",
                 //ApproveRequestBody = $$"""
                 //{
@@ -143,7 +143,7 @@ public class ContentModerationFunctions(
                 continue;
             }
 
-            entity.State = WorkflowState.Approved;
+            entity.State = ModerationState.Approved;
             await dataStorageService.UpdateEntityAsync(entity);
             logger.LogInformation("Marked comment '{CommentText}' (ID: {CommentId}) as accepted.", comment.Text, comment.Id);
         }

@@ -5,6 +5,6 @@ public interface IOrchestratorEventService
 {
     string PartitionKey { get; }
 
-    Task ApproveAsync(string rowKey);
-    Task RejectAsync(string rowKey);
+    Task ApproveAsync(string workflowId);
+    Task RejectAsync(string workflowId);
 }

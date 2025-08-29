@@ -29,24 +29,32 @@
                     @item.Comment
                 </td>
                 <td>
-                    @if (item.State == WorkflowDemos.Shared.DataStorage.WorkflowState.WaitingApproval)
+                    @if (item.State == WorkflowDemos.Shared.DataStorage.ModerationState.PendingHumanReview)
                     {
                         <form method="post" asp-page-handler="Approve">
                             <input type="hidden" name="partitionKey" value="@item.PartitionKey" />
-                            <input type="hidden" name="rowKey" value="@item.RowKey" />
+                            <input type="hidden" name="workflowId" value="@item.ManualApprovalWorkflowId" />
                             <button type="submit">Approve</button>
                         </form>
                         <form method="post" asp-page-handler="Reject">
                             <input type="hidden" name="partitionKey" value="@item.PartitionKey" />
-                            <input type="hidden" name="rowKey" value="@item.RowKey" />
+                            <input type="hidden" name="workflowId" value="@item.ManualApprovalWorkflowId" />
                             <button type="submit">Reject</button>
                         </form>
                     }
-                    else if (item.State == WorkflowDemos.Shared.DataStorage.WorkflowState.Approved)
+                    else if (item.State == WorkflowDemos.Shared.DataStorage.ModerationState.PendingAiReview)
                     {
-                        <span>Approved</span>
+                        <span>Pending AI review</span>
                     }
-                    else if (item.State == WorkflowDemos.Shared.DataStorage.WorkflowState.Rejected)
+                    else if (item.State == WorkflowDemos.Shared.DataStorage.ModerationState.ApprovedByAi)
+                    {
+                        <span>Approved by AI</span>
+                    }
+                    else if (item.State == WorkflowDemos.Shared.DataStorage.ModerationState.ApprovedByHuman)
+                    {
+                        <span>Approved by Human</span>
+                    }
+                    else if (item.State == WorkflowDemos.Shared.DataStorage.ModerationState.Rejected)
                     {
                         <span>Rejected</span>
                     }

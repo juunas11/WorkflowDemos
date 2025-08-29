@@ -14,17 +14,44 @@ public class ContentModerationWorkflow
         }
 
         var comments = input.Comments;
+        // Set ID for all comments
+        foreach (var comment in comments)
+        {
+            comment.Id = Workflow.NewGuid().ToString();
+        }
 
-        var contentFilteringTasks = input.Comments.ConvertAll(comment => Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.CheckCommentAsync(comment), new()
+        var defaultActivityOptions = new ActivityOptions
         {
             ScheduleToCloseTimeout = TimeSpan.FromMinutes(5),
-        }));
+        };
+
+        var storeInitialStateTasks = comments.ConvertAll(comment =>
+            Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.StoreInitialCommentStateAsync(comment.Id, comment.Text), defaultActivityOptions));
+        await Workflow.WhenAllAsync(storeInitialStateTasks);
+
+        var contentFilteringTasks = input.Comments.ConvertAll(comment => Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.CheckCommentAsync(comment), defaultActivityOptions));
         comments = (await Workflow.WhenAllAsync(contentFilteringTasks)).ToList();
 
-        var manualApprovalTasks = comments.ConvertAll(comment => Workflow.ExecuteChildWorkflowAsync((ManualModerationWorkflow x) => x.RunAsync(comment), new()
+        var updateCommentStateTasks = comments
+            .Where(comment => comment.ApprovedByAi)
+            .Select(comment =>
+                Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.SetCommentApprovedByAiAsync(comment.Id), defaultActivityOptions))
+            .ToList();
+        await Workflow.WhenAllAsync(updateCommentStateTasks);
+
+        var manualApprovalTasks = comments.ConvertAll(comment =>
         {
-            ParentClosePolicy = ParentClosePolicy.Terminate,
-        }));
+            if (comment.ApprovedByAi)
+            {
+                // Already approved by AI, no need for manual review
+                return Task.FromResult(comment);
+            }
+
+            return Workflow.ExecuteChildWorkflowAsync((ManualModerationWorkflow x) => x.RunAsync(comment), new()
+            {
+                ParentClosePolicy = ParentClosePolicy.Terminate,
+            });
+        });
         comments = (await Workflow.WhenAllAsync(manualApprovalTasks)).ToList();
 
         return comments
@@ -42,6 +69,7 @@ public class WorkflowInput
 public class Comment
 {
     public required string Text { get; set; }
+    public string Id { get; set; } = "";
     public bool ApprovedByAi { get; set; }
     public bool ApprovedByHuman { get; set; }
 }
