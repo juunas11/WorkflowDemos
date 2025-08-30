@@ -2,16 +2,41 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Moderation portal";
+    var defaultComments = string.Join(Environment.NewLine, [
+        "This is great!",
+        "I hate this",
+        "I hate you"
+    ]);
 }
 
 <h1>Moderation portal</h1>
 
-<table>
+<h2>Submit test comments</h2>
+<form method="post" asp-page-handler="SubmitComment">
+    <div class="form-group mb-2">
+        <label for="orchestrator">Orchestrator</label>
+        <select class="form-select" name="orchestrator" id="orchestrator">
+            <option selected="">Choose orchestrator</option>
+            <option value="DurableFunctions">Durable Functions</option>
+            <option value="Elsa">Elsa</option>
+            <option value="Temporal">Temporal</option>
+        </select>
+    </div>
+    <div class="form-group mb-2">
+        <label for="comments">Comments</label>
+        <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Enter comments (one per line)">@defaultComments</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary mb-3">Send</button>
+</form>
+
+<h2>Comment review status</h2>
+
+<table class="table table-striped">
     <thead>
         <tr>
-            <th>Partition key</th>
-            <th>Row key</th>
-            <th>Comment</th>
+            <th>Orchestrator</th>
+            <th>Comment ID</th>
+            <th>Comment Text</th>
             <th>Actions/Status</th>
         </tr>
     </thead>
