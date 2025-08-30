@@ -24,7 +24,7 @@ public class ManualModerationWorkflow
             ScheduleToCloseTimeout = TimeSpan.FromMinutes(30),
         });
 
-        var gotResult = await Workflow.WaitConditionAsync(() => approved || rejected, TimeSpan.FromDays(7));
+        var gotResult = await Workflow.WaitConditionAsync(() => approved || rejected, TimeSpan.FromDays(1));
         if (gotResult && approved)
         {
             comment.ApprovedByHuman = true;

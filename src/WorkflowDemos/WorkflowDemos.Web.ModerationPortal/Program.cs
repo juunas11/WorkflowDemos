@@ -7,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddTableStorageService(builder.Configuration["Storage:ConnectionString"]!);
 builder.Services.AddTemporalClient(builder.Configuration["Temporal:HostUri"]!);
+builder.Services.AddHttpClient();
+builder.Services.AddTransient<IOrchestratorIntegrationService, DurableFunctionsIntegrationService>();
 builder.Services.AddTransient<IOrchestratorIntegrationService, TemporalIntegrationService>();
 builder.Services.AddTransient<OrchestratorManager>();
 
