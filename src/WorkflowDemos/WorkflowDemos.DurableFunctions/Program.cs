@@ -1,3 +1,4 @@
+using DurableFunctionsMonitor.DotNetIsolated;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
@@ -17,5 +18,11 @@ builder.Services
     .AddMailgunEmailService(builder.Configuration["MailgunFromEmail"]!, builder.Configuration["MailgunDomain"]!, builder.Configuration["MailgunApiKey"]!)
     .AddAzureContentSafetyModeration(builder.Configuration["AzureContentSafetyEndpoint"]!, builder.Configuration["AzureContentSafetyApiKey"]!)
     .AddTableStorageService(builder.Configuration["StorageConnectionString"]!);
+
+builder.UseDurableFunctionsMonitor((settings, extensions) =>
+{
+    settings.DisableAuthentication = true;
+    settings.Mode = DfmMode.Normal;
+});
 
 builder.Build().Run();

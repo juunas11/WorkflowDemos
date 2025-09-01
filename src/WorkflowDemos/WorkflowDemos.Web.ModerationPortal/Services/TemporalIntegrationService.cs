@@ -34,39 +34,3 @@ public class TemporalIntegrationService(ITemporalClient temporalClient) : IOrche
         await handle.SignalAsync("Reject", []);
     }
 }
-
-public class DurableFunctionsIntegrationService(IHttpClientFactory httpClientFactory, IConfiguration configuration) : IOrchestratorIntegrationService
-{
-    private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
-    public string PartitionKey => "DurableFunctions";
-
-    public async Task SubmitCommentsAsync(IEnumerable<string> comments)
-    {
-        var response = await _httpClient.PostAsJsonAsync(configuration["DurableFunctions:ContentModerationWorkflowStartUrl"], new
-        {
-            Comments = comments.Select(c => new
-            {
-                Text = c
-            }).ToList(),
-        });
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task ApproveAsync(string workflowId)
-    {
-        var response = await _httpClient.PostAsJsonAsync(configuration["DurableFunctions:ApproveUrl"], new
-        {
-            InstanceId = workflowId
-        });
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task RejectAsync(string workflowId)
-    {
-        var response = await _httpClient.PostAsJsonAsync(configuration["DurableFunctions:RejectUrl"], new
-        {
-            InstanceId = workflowId
-        });
-        response.EnsureSuccessStatusCode();
-    }
-}

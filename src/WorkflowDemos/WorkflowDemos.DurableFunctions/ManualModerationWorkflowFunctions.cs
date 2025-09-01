@@ -5,7 +5,6 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Configuration;
 using WorkflowDemos.Shared.DataStorage;
 using WorkflowDemos.Shared.Email;
-using static WorkflowDemos.DurableFunctions.ContentModerationWorkflowFunctions;
 
 namespace WorkflowDemos.DurableFunctions;
 
@@ -39,11 +38,7 @@ public class ManualModerationWorkflowFunctions(
 
         try
         {
-            var approvalTask = context.WaitForExternalEvent<bool>("Approve", TimeSpan.FromDays(1));
-            var rejectTask = context.WaitForExternalEvent<bool>("Reject", TimeSpan.FromDays(1));
-
-            var winner = await Task.WhenAny(approvalTask, rejectTask);
-            comment.ApprovedByHuman = winner == approvalTask && approvalTask.Result;
+            comment.ApprovedByHuman = await context.WaitForExternalEvent<bool>("ModerationDecision", TimeSpan.FromDays(1));
         }
         catch (TimeoutException)
         {
@@ -105,8 +100,8 @@ public class ManualModerationWorkflowFunctions(
         await dataStorageService.UpdateEntityAsync(entity);
     }
 
-    [Function("ManualModerationWorkflow_Approve")]
-    public static async Task<HttpResponseData> ManualModerationWorkflowApprove(
+    [Function("ManualModerationWorkflow_ModerationDecision")]
+    public static async Task<HttpResponseData> ManualModerationWorkflowModerationDecision(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
         [DurableClient] DurableTaskClient client,
         FunctionContext executionContext)
@@ -115,23 +110,9 @@ public class ManualModerationWorkflowFunctions(
 
         await client.RaiseEventAsync(
             requestBody!.InstanceId,
-            "Approve",
-            true);
+            "ModerationDecision",
+            requestBody.IsApproved);
 
-        return req.CreateResponse(System.Net.HttpStatusCode.NoContent);
-    }
-
-    [Function("ManualModerationWorkflow_Reject")]
-    public static async Task<HttpResponseData> ManualModerationWorkflowReject(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
-        [DurableClient] DurableTaskClient client,
-        FunctionContext executionContext)
-    {
-        var requestBody = await req.ReadFromJsonAsync<ApproveOrRejectInput>();
-        await client.RaiseEventAsync(
-            requestBody!.InstanceId,
-            "Reject",
-            true);
         return req.CreateResponse(System.Net.HttpStatusCode.NoContent);
     }
 
@@ -144,5 +125,6 @@ public class ManualModerationWorkflowFunctions(
     public class ApproveOrRejectInput
     {
         public required string InstanceId { get; set; }
+        public required bool IsApproved { get; set; }
     }
 }
