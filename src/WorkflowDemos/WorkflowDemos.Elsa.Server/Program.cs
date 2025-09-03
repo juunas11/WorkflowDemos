@@ -1,9 +1,13 @@
-using Elsa.CSharp.Features;
+using Elsa.CSharp.Options;
 using Elsa.EntityFrameworkCore.Extensions;
 using Elsa.EntityFrameworkCore.Modules.Management;
 using Elsa.EntityFrameworkCore.Modules.Runtime;
 using Elsa.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using WorkflowDemos.Elsa.Server.Types;
+using WorkflowDemos.Shared.DataStorage;
+using WorkflowDemos.Shared.Email;
+using WorkflowDemos.Shared.Moderation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,12 +24,24 @@ builder.Services
             identity.UseAdminUserProvider();
         })
         .UseDefaultAuthentication(auth => auth.UseAdminApiKey())
-        .UseWorkflowManagement(management => management.UseEntityFrameworkCore(ef => ef.UseSqlite()))
+        .UseWorkflowManagement(management =>
+        {
+            management.UseEntityFrameworkCore(ef => ef.UseSqlite());
+            management.AddVariableTypes(
+            [
+                typeof(WorkflowInput),
+                typeof(Comment),
+            ], "Moderation");
+        })
         .UseWorkflowRuntime(runtime => runtime.UseEntityFrameworkCore(ef => ef.UseSqlite()))
         .UseScheduling()
         .UseJavaScript()
         .UseLiquid()
-        .UseCSharp()
+        .UseCSharp((CSharpOptions opts) =>
+        {
+            opts.Assemblies.Add(typeof(Comment).Assembly);
+            opts.Namespaces.Add(typeof(Comment).Namespace!);
+        })
         .UseHttp(http => http.ConfigureHttpOptions = options => builder.Configuration.GetSection("Http").Bind(options))
         .UseWorkflowsApi()
         .AddActivitiesFrom<Program>()
@@ -35,6 +51,10 @@ builder.Services
 // TODO: Tighten CORS
 builder.Services.AddCors(cors => cors.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*")));
 builder.Services.AddRazorPages(options => options.Conventions.ConfigureFilter(new IgnoreAntiforgeryTokenAttribute()));
+
+builder.Services.AddMailgunEmailService(builder.Configuration["Mailgun:FromEmail"]!, builder.Configuration["Mailgun:Domain"]!, builder.Configuration["Mailgun:ApiKey"]!);
+builder.Services.AddAzureContentSafetyModeration(builder.Configuration["AzureContentSafety:Endpoint"]!, builder.Configuration["AzureContentSafety:ApiKey"]!);
+builder.Services.AddTableStorageService(builder.Configuration["Storage:ConnectionString"]!);
 
 var app = builder.Build();
 

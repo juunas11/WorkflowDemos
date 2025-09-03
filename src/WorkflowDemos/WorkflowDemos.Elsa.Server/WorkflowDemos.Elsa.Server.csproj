@@ -1,7 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\WorkflowDemos.Elsa.Studio\WorkflowDemos.Elsa.Studio.csproj" />
+    <ProjectReference Include="..\WorkflowDemos.Shared.DataStorage\WorkflowDemos.Shared.DataStorage.csproj" />
+    <ProjectReference Include="..\WorkflowDemos.Shared.Email\WorkflowDemos.Shared.Email.csproj" />
+    <ProjectReference Include="..\WorkflowDemos.Shared.Moderation\WorkflowDemos.Shared.Moderation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +25,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<UserSecretsId>WorkflowDemos</UserSecretsId>
   </PropertyGroup>
 
 </Project>

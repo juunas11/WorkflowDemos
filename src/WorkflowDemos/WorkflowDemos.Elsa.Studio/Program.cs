@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorWasm.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
@@ -15,6 +14,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
+using System.Text.Json;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
