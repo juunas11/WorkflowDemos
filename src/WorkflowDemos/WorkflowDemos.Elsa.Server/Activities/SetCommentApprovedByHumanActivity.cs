@@ -18,6 +18,10 @@ public class SetCommentApprovedByHumanActivity : CodeActivity
         Description = "The comment to update")]
     public Input<Comment> Comment { get; set; } = null!;
 
+    [Output(
+        Description = "The updated comment")]
+    public Output<Comment> UpdatedComment { get; set; } = null!;
+
     protected override async ValueTask ExecuteAsync(ActivityExecutionContext context)
     {
         var dataStorageService = context.GetRequiredService<IDataStorageService>();
@@ -31,5 +35,8 @@ public class SetCommentApprovedByHumanActivity : CodeActivity
 
         entity.State = ModerationState.ApprovedByHuman;
         await dataStorageService.UpdateEntityAsync(entity);
+
+        comment.ApprovedByHuman = true;
+        UpdatedComment.Set(context, comment);
     }
 }
