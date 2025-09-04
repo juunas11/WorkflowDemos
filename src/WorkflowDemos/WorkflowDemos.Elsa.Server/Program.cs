@@ -52,7 +52,12 @@ builder.Services
 builder.Services.AddCors(cors => cors.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*")));
 builder.Services.AddRazorPages(options => options.Conventions.ConfigureFilter(new IgnoreAntiforgeryTokenAttribute()));
 
-builder.Services.AddMailgunEmailService(builder.Configuration["Mailgun:FromEmail"]!, builder.Configuration["Mailgun:Domain"]!, builder.Configuration["Mailgun:ApiKey"]!);
+builder.Services.AddMailgunEmailService(
+    builder.Configuration["Mailgun:FromEmail"]!,
+    builder.Configuration["Mailgun:Domain"]!,
+    builder.Configuration["Mailgun:ApiKey"]!,
+    builder.Configuration["ModeratorEmail"]!,
+    builder.Configuration["ModerationPortalUrl"]!);
 builder.Services.AddAzureContentSafetyModeration(builder.Configuration["AzureContentSafety:Endpoint"]!, builder.Configuration["AzureContentSafety:ApiKey"]!);
 builder.Services.AddTableStorageService(builder.Configuration["Storage:ConnectionString"]!);
 

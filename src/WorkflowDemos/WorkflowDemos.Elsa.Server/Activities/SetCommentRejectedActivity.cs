@@ -10,27 +10,26 @@ namespace WorkflowDemos.Elsa.Server.Activities;
 [Activity(
     Namespace = "ContentModeration",
     Category = "Moderation/Storage",
-    DisplayName = "Store initial comment state",
-    Description = "Stores the initial state of a comment in the data storage service.")]
-public class StoreInitialCommentStateActivity : CodeActivity
+    DisplayName = "Set comment rejected",
+    Description = "Sets the comment state to rejected in the data storage service.")]
+public class SetCommentRejectedActivity : CodeActivity
 {
     [Input(
-        Description = "The comment to store")]
+        Description = "The comment to update")]
     public Input<Comment> Comment { get; set; } = null!;
 
     protected override async ValueTask ExecuteAsync(ActivityExecutionContext context)
     {
         var dataStorageService = context.GetRequiredService<IDataStorageService>();
-
         var comment = Comment.Get(context);
 
-        await dataStorageService.CreateEntityAsync(new CommentEntity
+        var entity = await dataStorageService.GetEntityAsync(Constants.StoragePartitionKey, comment.Id);
+        if (entity == null)
         {
-            PartitionKey = Constants.StoragePartitionKey,
-            RowKey = comment.Id,
-            Comment = comment.Text,
-            ManualApprovalWorkflowId = null,
-            State = ModerationState.PendingAiReview,
-        });
+            throw new InvalidOperationException("Could not find workflow entity");
+        }
+
+        entity.State = ModerationState.Rejected;
+        await dataStorageService.UpdateEntityAsync(entity);
     }
 }

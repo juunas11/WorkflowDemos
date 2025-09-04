@@ -4,9 +4,9 @@ namespace WorkflowDemos.Shared.Email;
 
 public class MockEmailService(ILogger<MockEmailService> logger) : IEmailService
 {
-    public Task SendEmailAsync(string to, string subject, string body)
+    public Task SendModerationRequiredEmailAsync(string partitionKey, string rowKey)
     {
-        logger.LogInformation("Mock email sent to {To} with subject '{Subject}' and body: {Body}", to, subject, body);
+        logger.LogInformation("Mock moderation required email sent for partition key '{PartitionKey}' and row key '{RowKey}'", partitionKey, rowKey);
         return Task.CompletedTask;
     }
 }

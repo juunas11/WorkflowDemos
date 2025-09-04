@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Temporalio.Activities;
+﻿using Temporalio.Activities;
 using WorkflowDemos.Shared.DataStorage;
 using WorkflowDemos.Shared.Email;
 using WorkflowDemos.Shared.Moderation;
@@ -9,8 +8,7 @@ namespace WorkflowDemos.Temporal;
 public class ContentModerationActivities(
     IContentModerationService contentModerationService,
     IEmailService emailService,
-    IDataStorageService dataStorageService,
-    IConfiguration configuration)
+    IDataStorageService dataStorageService)
 {
     private const string PartitionKey = "Temporal";
 
@@ -24,10 +22,7 @@ public class ContentModerationActivities(
     [Activity]
     public async Task EmailModeratorAsync(string commentId)
     {
-        await emailService.SendEmailAsync(
-            configuration["ModeratorEmail"]!,
-            "Manual Moderation Required",
-            $"A comment requires manual moderation. Please review it in the moderation portal: {configuration["ModerationPortalUrl"]}.\n\nPartition key: {PartitionKey}\n\nRow key: {commentId}");
+        await emailService.SendModerationRequiredEmailAsync(commentId);
     }
 
     [Activity]
