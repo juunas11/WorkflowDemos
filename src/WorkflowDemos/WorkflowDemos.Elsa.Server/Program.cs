@@ -3,7 +3,11 @@ using Elsa.EntityFrameworkCore.Extensions;
 using Elsa.EntityFrameworkCore.Modules.Management;
 using Elsa.EntityFrameworkCore.Modules.Runtime;
 using Elsa.Extensions;
+using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Workflows;
+using Elsa.Workflows.Runtime;
 using Microsoft.AspNetCore.Mvc;
+using WorkflowDemos.Elsa.Server;
 using WorkflowDemos.Elsa.Server.Types;
 using WorkflowDemos.Shared.DataStorage;
 using WorkflowDemos.Shared.Email;
@@ -30,7 +34,7 @@ builder.Services
             management.AddVariableTypes(
             [
                 typeof(WorkflowInput),
-                typeof(Comment),
+                typeof(Comment)
             ], "Moderation");
         })
         .UseWorkflowRuntime(runtime => runtime.UseEntityFrameworkCore(ef => ef.UseSqlite()))
@@ -78,5 +82,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseWorkflowsApi();
 app.UseWorkflows();
+
 app.MapFallbackToPage("/_Host");
 app.Run();

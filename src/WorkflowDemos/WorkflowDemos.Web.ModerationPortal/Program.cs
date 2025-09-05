@@ -10,6 +10,7 @@ builder.Services.AddTemporalClient(builder.Configuration["Temporal:HostUri"]!);
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IOrchestratorIntegrationService, DurableFunctionsIntegrationService>();
 builder.Services.AddTransient<IOrchestratorIntegrationService, TemporalIntegrationService>();
+builder.Services.AddTransient<IOrchestratorIntegrationService, ElsaIntegrationService>();
 builder.Services.AddTransient<OrchestratorManager>();
 
 var app = builder.Build();
