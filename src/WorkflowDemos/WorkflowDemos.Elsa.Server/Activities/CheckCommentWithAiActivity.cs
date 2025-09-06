@@ -20,19 +20,13 @@ public class CheckCommentWithAiActivity : Activity
         Description = "The comment to check")]
     public Input<Comment> Comment { get; set; } = null!;
 
-    [Output(
-        Description = "The updated comment")]
-    public Output<Comment> UpdatedComment { get; set; } = null!;
-
     protected override async ValueTask ExecuteAsync(ActivityExecutionContext context)
     {
         var comment = Comment.Get(context);
 
         var contentModerationService = context.GetRequiredService<IContentModerationService>();
-        var isApproved = await contentModerationService.CheckCommentAsync(comment.Text);
 
-        comment.ApprovedByAi = isApproved;
-        UpdatedComment.Set(context, comment);
+        var isApproved = await contentModerationService.CheckCommentAsync(comment.Text);
 
         await context.CompleteActivityWithOutcomesAsync(isApproved ? "Approved" : "Rejected");
     }

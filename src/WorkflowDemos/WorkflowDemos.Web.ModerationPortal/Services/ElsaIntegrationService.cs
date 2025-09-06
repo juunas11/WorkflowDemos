@@ -16,6 +16,8 @@ public class ElsaIntegrationService(
                 Text = c
             }).ToList(),
         });
+        // ELSA does not support chunked transfer encoding
+        // This works around that
         await content.LoadIntoBufferAsync();
 
         var response = await _httpClient.PostAsync(configuration["Elsa:ContentModerationWorkflowStartUrl"], content);
