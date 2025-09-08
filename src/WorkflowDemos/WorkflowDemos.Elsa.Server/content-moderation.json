@@ -1,0 +1,1054 @@
+{
+  "$schema": "https://elsaworkflows.io/schemas/workflow-definition/v3.0.0/schema.json",
+  "id": "865d95139e0200e0",
+  "definitionId": "860160441c6a1203",
+  "name": "Content moderation",
+  "createdAt": "2025-09-06T12:43:27.6155992\u002B00:00",
+  "version": 60,
+  "toolVersion": "3.5.0.0",
+  "variables": [
+    {
+      "id": "d8969567d9766e57",
+      "name": "WorkflowInput",
+      "typeName": "WorkflowDemos.Elsa.Server.Types.WorkflowInput, WorkflowDemos.Elsa.Server",
+      "isArray": false,
+      "storageDriverTypeName": "Elsa.Workflows.WorkflowInstanceStorageDriver, Elsa.Workflows.Core"
+    },
+    {
+      "id": "63682c19540e4162",
+      "name": "Comments",
+      "typeName": "WorkflowDemos.Elsa.Server.Types.Comment, WorkflowDemos.Elsa.Server",
+      "isArray": true,
+      "storageDriverTypeName": "Elsa.Workflows.WorkflowInstanceStorageDriver, Elsa.Workflows.Core"
+    },
+    {
+      "id": "496e837f6c327979",
+      "name": "Comment",
+      "typeName": "WorkflowDemos.Elsa.Server.Types.Comment, WorkflowDemos.Elsa.Server",
+      "isArray": false,
+      "storageDriverTypeName": "Elsa.Workflows.MemoryStorageDriver, Elsa.Workflows.Core"
+    },
+    {
+      "id": "836297f0c2618237",
+      "name": "CommentIndex",
+      "typeName": "Int32",
+      "isArray": false,
+      "value": "0",
+      "storageDriverTypeName": "Elsa.Workflows.MemoryStorageDriver, Elsa.Workflows.Core"
+    },
+    {
+      "id": "3bfed4dfa035d6cf",
+      "name": "ManualModerationOutput",
+      "typeName": "ObjectDictionary",
+      "isArray": false,
+      "storageDriverTypeName": "Elsa.Workflows.MemoryStorageDriver, Elsa.Workflows.Core"
+    }
+  ],
+  "inputs": [],
+  "outputs": [],
+  "outcomes": [],
+  "customProperties": {},
+  "isReadonly": false,
+  "isSystem": false,
+  "isLatest": true,
+  "isPublished": false,
+  "options": {
+    "autoUpdateConsumingWorkflows": false
+  },
+  "root": {
+    "id": "9a6b9ec59fa082f2",
+    "nodeId": "Workflow1:9a6b9ec59fa082f2",
+    "name": "Flowchart1",
+    "type": "Elsa.Flowchart",
+    "version": 1,
+    "customProperties": {
+      "notFoundConnections": [],
+      "canStartWorkflow": false,
+      "runAsynchronously": false
+    },
+    "metadata": {},
+    "activities": [
+      {
+        "path": {
+          "typeName": "String",
+          "expression": {
+            "type": "Literal",
+            "value": "contentmoderation"
+          }
+        },
+        "supportedMethods": {
+          "typeName": "List\u003CString\u003E",
+          "expression": {
+            "type": "Object",
+            "value": "[\u0022POST\u0022]"
+          }
+        },
+        "authorize": {
+          "typeName": "Boolean",
+          "expression": {
+            "type": "Literal",
+            "value": false
+          }
+        },
+        "policy": {
+          "typeName": "String",
+          "expression": {
+            "type": "Literal"
+          }
+        },
+        "requestTimeout": null,
+        "requestSizeLimit": null,
+        "fileSizeLimit": null,
+        "allowedFileExtensions": null,
+        "blockedFileExtensions": null,
+        "allowedMimeTypes": null,
+        "exposeRequestTooLargeOutcome": false,
+        "exposeFileTooLargeOutcome": false,
+        "exposeInvalidFileExtensionOutcome": false,
+        "exposeInvalidFileMimeTypeOutcome": false,
+        "parsedContent": {
+          "typeName": "Object",
+          "memoryReference": {
+            "id": "d8969567d9766e57"
+          }
+        },
+        "files": null,
+        "routeData": {
+          "typeName": "ObjectDictionary",
+          "memoryReference": {
+            "id": "ab3ae079b05bb8d6"
+          }
+        },
+        "queryStringData": null,
+        "headers": null,
+        "result": null,
+        "id": "c6a6a1f75a3e403e",
+        "nodeId": "Workflow1:9a6b9ec59fa082f2:c6a6a1f75a3e403e",
+        "name": "HttpEndpoint1",
+        "type": "Elsa.HttpEndpoint",
+        "version": 1,
+        "customProperties": {
+          "canStartWorkflow": true,
+          "runAsynchronously": false
+        },
+        "metadata": {
+          "designer": {
+            "position": {
+              "x": 152.5749969482422,
+              "y": 161.97500610351562
+            },
+            "size": {
+              "width": 195.14999389648438,
+              "height": 67.98333740234375
+            }
+          }
+        }
+      },
+      {
+        "variable": {
+          "id": "63682c19540e4162",
+          "name": "Comments",
+          "typeName": "Object",
+          "storageDriverTypeName": "Elsa.Workflows.WorkflowInstanceStorageDriver, Elsa.Workflows.Core"
+        },
+        "value": {
+          "typeName": "Object",
+          "expression": {
+            "type": "CSharp",
+            "value": "return Variables.WorkflowInput.Comments;"
+          }
+        },
+        "id": "6359d5b95c909aa6",
+        "nodeId": "Workflow1:9a6b9ec59fa082f2:6359d5b95c909aa6",
+        "name": "SetVariable1",
+        "type": "Elsa.SetVariable",
+        "version": 1,
+        "customProperties": {
+          "canStartWorkflow": false,
+          "runAsynchronously": false
+        },
+        "metadata": {
+          "designer": {
+            "position": {
+              "x": 455.9249954223633,
+              "y": 161.97500610351562
+            },
+            "size": {
+              "width": 193.11666870117188,
+              "height": 67.98333740234375
+            }
+          },
+          "displayText": "Set Comments"
+        }
+      },
+      {
+        "start": {
+          "typeName": "Int32",
+          "expression": {
+            "type": "Literal",
+            "value": "0"
+          }
+        },
+        "end": {
+          "typeName": "Int32",
+          "expression": {
+            "type": "CSharp",
+            "value": "return Variables.Comments.Length - 1;"
+          }
+        },
+        "step": {
+          "typeName": "Int32",
+          "expression": {
+            "type": "Literal",
+            "value": "1"
+          }
+        },
+        "outerBoundInclusive": {
+          "typeName": "Boolean",
+          "expression": {
+            "type": "Literal",
+            "value": "True"
+          }
+        },
+        "body": {
+          "id": "d65878bf2ed06d28",
+          "nodeId": "Workflow1:9a6b9ec59fa082f2:ffb1dabd9b4978bc:d65878bf2ed06d28",
+          "name": "Flowchart1",
+          "type": "Elsa.Flowchart",
+          "version": 1,
+          "customProperties": {
+            "notFoundConnections": [],
+            "canStartWorkflow": false,
+            "runAsynchronously": false
+          },
+          "metadata": {
+            "displayText": "Set comment ID"
+          },
+          "activities": [
+            {
+              "id": "430a8a7b195c69e4",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:ffb1dabd9b4978bc:d65878bf2ed06d28:430a8a7b195c69e4",
+              "name": "Start1",
+              "type": "Elsa.Start",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": -294.2166748046875,
+                    "y": -59.100006103515625
+                  },
+                  "size": {
+                    "width": 122.26666259765625,
+                    "height": 67.58332824707031
+                  }
+                }
+              }
+            },
+            {
+              "script": {
+                "typeName": "String",
+                "expression": {
+                  "type": "Literal",
+                  "value": "int index = Variables.CommentIndex;\r\nComment comment = Variables.Comments[index];\r\ncomment.Id = Guid.NewGuid().ToString();"
+                }
+              },
+              "possibleOutcomes": null,
+              "result": null,
+              "id": "4b4060d8f3f13b56",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:ffb1dabd9b4978bc:d65878bf2ed06d28:4b4060d8f3f13b56",
+              "name": "RunCSharp1",
+              "type": "Elsa.RunCSharp",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": -96.2166748046875,
+                    "y": -59.100006103515625
+                  },
+                  "size": {
+                    "width": 172.23333740234375,
+                    "height": 67.58332824707031
+                  }
+                },
+                "displayText": "Set Comment ID"
+              }
+            },
+            {
+              "id": "fd2513944192c1e5",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:ffb1dabd9b4978bc:d65878bf2ed06d28:fd2513944192c1e5",
+              "name": "End1",
+              "type": "Elsa.End",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 153.7833251953125,
+                    "y": -59.100006103515625
+                  },
+                  "size": {
+                    "width": 114.91667175292969,
+                    "height": 67.58332824707031
+                  }
+                }
+              }
+            }
+          ],
+          "variables": [],
+          "connections": [
+            {
+              "source": {
+                "activity": "430a8a7b195c69e4",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "4b4060d8f3f13b56",
+                "port": "In"
+              },
+              "vertices": []
+            },
+            {
+              "source": {
+                "activity": "4b4060d8f3f13b56",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "fd2513944192c1e5",
+                "port": "In"
+              },
+              "vertices": []
+            }
+          ]
+        },
+        "currentValue": {
+          "typeName": "Object",
+          "memoryReference": {
+            "id": "836297f0c2618237"
+          }
+        },
+        "id": "ffb1dabd9b4978bc",
+        "nodeId": "Workflow1:9a6b9ec59fa082f2:ffb1dabd9b4978bc",
+        "name": "For1",
+        "type": "Elsa.For",
+        "version": 1,
+        "customProperties": {
+          "canStartWorkflow": false,
+          "runAsynchronously": false
+        },
+        "metadata": {
+          "designer": {
+            "position": {
+              "x": 755.0166625976562,
+              "y": 127.37501525878906
+            },
+            "size": {
+              "width": 146.63333129882812,
+              "height": 137.5833282470703
+            }
+          }
+        }
+      },
+      {
+        "items": {
+          "typeName": "Object",
+          "expression": {
+            "type": "Variable",
+            "value": {
+              "id": "63682c19540e4162",
+              "name": "Comments",
+              "typeName": "Object",
+              "storageDriverTypeName": "Elsa.Workflows.WorkflowInstanceStorageDriver, Elsa.Workflows.Core"
+            }
+          }
+        },
+        "body": {
+          "id": "6bd3a1b6e430e687",
+          "nodeId": "Workflow1:9a6b9ec59fa082f2:ac3f5827475231b5:6bd3a1b6e430e687",
+          "name": "Store initial state",
+          "type": "Elsa.Flowchart",
+          "version": 1,
+          "customProperties": {
+            "notFoundConnections": [],
+            "canStartWorkflow": false,
+            "runAsynchronously": false
+          },
+          "metadata": {},
+          "activities": [
+            {
+              "id": "fae3535a2bb5294e",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:ac3f5827475231b5:6bd3a1b6e430e687:fae3535a2bb5294e",
+              "name": "Start1",
+              "type": "Elsa.Start",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": -295.5166931152344,
+                    "y": -65.10000610351562
+                  },
+                  "size": {
+                    "width": 122.26666259765625,
+                    "height": 67.58332824707031
+                  }
+                }
+              }
+            },
+            {
+              "id": "44fc76778e094066",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:ac3f5827475231b5:6bd3a1b6e430e687:44fc76778e094066",
+              "name": "End1",
+              "type": "Elsa.End",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 244.48330688476562,
+                    "y": -65.10000610351562
+                  },
+                  "size": {
+                    "width": 114.91667175292969,
+                    "height": 67.58332824707031
+                  }
+                }
+              }
+            },
+            {
+              "comment": {
+                "typeName": "WorkflowDemos.Elsa.Server.Types.Comment, WorkflowDemos.Elsa.Server",
+                "expression": {
+                  "type": "CSharp",
+                  "value": "return Variables.Get\u003CComment\u003E(\u0022CurrentValue\u0022);"
+                }
+              },
+              "id": "8560431073850d42",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:ac3f5827475231b5:6bd3a1b6e430e687:8560431073850d42",
+              "name": "StoreInitialCommentStateActivity1",
+              "type": "ContentModeration.StoreInitialCommentStateActivity",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": -78.2166748046875,
+                    "y": -65.10000610351562
+                  },
+                  "size": {
+                    "width": 247.8333282470703,
+                    "height": 67.58332824707031
+                  }
+                }
+              }
+            }
+          ],
+          "variables": [],
+          "connections": [
+            {
+              "source": {
+                "activity": "fae3535a2bb5294e",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "8560431073850d42",
+                "port": "In"
+              },
+              "vertices": []
+            },
+            {
+              "source": {
+                "activity": "8560431073850d42",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "44fc76778e094066",
+                "port": "In"
+              },
+              "vertices": []
+            }
+          ]
+        },
+        "id": "ac3f5827475231b5",
+        "nodeId": "Workflow1:9a6b9ec59fa082f2:ac3f5827475231b5",
+        "name": "ParallelForEach1",
+        "type": "Elsa.ParallelForEach",
+        "version": 1,
+        "customProperties": {
+          "canStartWorkflow": false,
+          "runAsynchronously": false
+        },
+        "metadata": {
+          "designer": {
+            "position": {
+              "x": 1014.9749984741211,
+              "y": 127.17501068115234
+            },
+            "size": {
+              "width": 203.28334045410156,
+              "height": 137.98333740234375
+            }
+          }
+        }
+      },
+      {
+        "items": {
+          "typeName": "Object",
+          "expression": {
+            "type": "Variable",
+            "value": {
+              "id": "63682c19540e4162",
+              "name": "Comments",
+              "typeName": "Object",
+              "storageDriverTypeName": "Elsa.Workflows.WorkflowInstanceStorageDriver, Elsa.Workflows.Core"
+            }
+          }
+        },
+        "body": {
+          "id": "b7f8737b246192e6",
+          "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5:b7f8737b246192e6",
+          "name": "",
+          "type": "Elsa.Flowchart",
+          "version": 1,
+          "customProperties": {
+            "notFoundConnections": [],
+            "canStartWorkflow": false,
+            "runAsynchronously": false
+          },
+          "metadata": {
+            "displayText": "Check content"
+          },
+          "activities": [
+            {
+              "comment": {
+                "typeName": "WorkflowDemos.Elsa.Server.Types.Comment, WorkflowDemos.Elsa.Server",
+                "expression": {
+                  "type": "CSharp",
+                  "value": "return Variables.Get\u003CComment\u003E(\u0022CurrentValue\u0022);"
+                }
+              },
+              "id": "51ef27cac950f1f4",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5:b7f8737b246192e6:51ef27cac950f1f4",
+              "name": "CheckCommentWithAiActivity",
+              "type": "ContentModeration.CheckCommentWithAiActivity",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 375.33333587646484,
+                    "y": 48.991668701171875
+                  },
+                  "size": {
+                    "width": 225.3333282470703,
+                    "height": 67.98333740234375
+                  }
+                }
+              }
+            },
+            {
+              "workflowDefinitionId": {
+                "typeName": "String",
+                "expression": {
+                  "type": "Literal",
+                  "value": "9820f45be618bb22"
+                }
+              },
+              "correlationId": null,
+              "input": {
+                "typeName": "ObjectDictionary",
+                "expression": {
+                  "type": "CSharp",
+                  "value": "return new Dictionary\u003Cstring, object\u003E\r\n{\r\n    [\u0022Comment\u0022] = Variables.Get\u003CComment\u003E(\u0022CurrentValue\u0022)\r\n};"
+                }
+              },
+              "waitForCompletion": {
+                "typeName": "Boolean",
+                "expression": {
+                  "type": "Literal",
+                  "value": "True"
+                }
+              },
+              "startNewTrace": null,
+              "channelName": null,
+              "result": {
+                "typeName": "Object",
+                "memoryReference": {
+                  "id": "3bfed4dfa035d6cf"
+                }
+              },
+              "id": "1541eb1b6aca41a5",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5:b7f8737b246192e6:1541eb1b6aca41a5",
+              "name": "DispatchWorkflow1",
+              "type": "Elsa.DispatchWorkflow",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 708.3666687011719,
+                    "y": 116.97500610351562
+                  },
+                  "size": {
+                    "width": 190.73333740234375,
+                    "height": 67.98333740234375
+                  }
+                },
+                "displayText": "Manual approval"
+              }
+            },
+            {
+              "comment": {
+                "typeName": "WorkflowDemos.Elsa.Server.Types.Comment, WorkflowDemos.Elsa.Server",
+                "expression": {
+                  "type": "CSharp",
+                  "value": "return Variables.Get\u003CComment\u003E(\u0022CurrentValue\u0022);"
+                }
+              },
+              "updatedComment": {
+                "typeName": "WorkflowDemos.Elsa.Server.Types.Comment, WorkflowDemos.Elsa.Server",
+                "memoryReference": {
+                  "id": "496e837f6c327979"
+                }
+              },
+              "id": "efc3e0a22222426e",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5:b7f8737b246192e6:efc3e0a22222426e",
+              "name": "SetCommentApprovedByAiActivity1",
+              "type": "ContentModeration.SetCommentApprovedByAiActivity",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 708.3666687011719,
+                    "y": 0
+                  },
+                  "size": {
+                    "width": 261.01666259765625,
+                    "height": 67.98333740234375
+                  }
+                }
+              }
+            },
+            {
+              "script": {
+                "typeName": "String",
+                "expression": {
+                  "type": "Literal",
+                  "value": "Comment updatedComment = (Comment)Variables.ManualModerationOutput[\u0022Comment\u0022];\r\nVariables.Set(\u0022CurrentValue\u0022, updatedComment);"
+                }
+              },
+              "possibleOutcomes": null,
+              "result": null,
+              "id": "c6948e3d85f6f5b0",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5:b7f8737b246192e6:c6948e3d85f6f5b0",
+              "name": "RunCSharp1",
+              "type": "Elsa.RunCSharp",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 999.2416687011719,
+                    "y": 116.97500610351562
+                  },
+                  "size": {
+                    "width": 110.18333435058594,
+                    "height": 67.58332824707031
+                  }
+                }
+              }
+            },
+            {
+              "id": "3436f2e3ede30fc6",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5:b7f8737b246192e6:3436f2e3ede30fc6",
+              "name": "Start1",
+              "type": "Elsa.Start",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 156.33333587646484,
+                    "y": 48.791664123535156
+                  },
+                  "size": {
+                    "width": 122.66667175292969,
+                    "height": 67.98333740234375
+                  }
+                }
+              }
+            },
+            {
+              "mode": {
+                "typeName": "Elsa.Workflows.Activities.Flowchart.Models.FlowJoinMode, Elsa.Workflows.Core",
+                "expression": {
+                  "type": "Literal",
+                  "value": "WaitAny"
+                }
+              },
+              "id": "f621139c87bb3a08",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5:b7f8737b246192e6:f621139c87bb3a08",
+              "name": "FlowJoin1",
+              "type": "Elsa.FlowJoin",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 1213.941665649414,
+                    "y": 48.991668701171875
+                  },
+                  "size": {
+                    "width": 118.38333129882812,
+                    "height": 67.58332824707031
+                  }
+                }
+              }
+            },
+            {
+              "variable": {
+                "id": "63682c19540e4162",
+                "name": "Comments",
+                "typeName": "WorkflowDemos.Elsa.Server.Types.Comment, WorkflowDemos.Elsa.Server",
+                "storageDriverTypeName": "Elsa.Workflows.WorkflowInstanceStorageDriver, Elsa.Workflows.Core"
+              },
+              "value": {
+                "typeName": "Object",
+                "expression": {
+                  "type": "CSharp",
+                  "value": "Comment[] comments = Variables.Comments;\r\nComment comment = Variables.Get\u003CComment\u003E(\u0022CurrentValue\u0022);\r\nint commentIndex = comments.ToList().FindIndex(c =\u003E c.Id == comment.Id);\r\ncomments[commentIndex] = comment;\r\nreturn comments;"
+                }
+              },
+              "id": "5b39e0bc7fc9cef4",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5:b7f8737b246192e6:5b39e0bc7fc9cef4",
+              "name": "SetVariable1",
+              "type": "Elsa.SetVariable",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 1403.5166625976562,
+                    "y": 48.991668701171875
+                  },
+                  "size": {
+                    "width": 250.76666259765625,
+                    "height": 67.58332824707031
+                  }
+                },
+                "displayText": "Update comment state"
+              }
+            },
+            {
+              "id": "52bea87e3acae274",
+              "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5:b7f8737b246192e6:52bea87e3acae274",
+              "name": "End1",
+              "type": "Elsa.End",
+              "version": 1,
+              "customProperties": {
+                "canStartWorkflow": false,
+                "runAsynchronously": false
+              },
+              "metadata": {
+                "designer": {
+                  "position": {
+                    "x": 1731.5583267211914,
+                    "y": 48.791664123535156
+                  },
+                  "size": {
+                    "width": 115.31666564941406,
+                    "height": 67.98333740234375
+                  }
+                }
+              }
+            }
+          ],
+          "variables": [],
+          "connections": [
+            {
+              "source": {
+                "activity": "1541eb1b6aca41a5",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "c6948e3d85f6f5b0",
+                "port": "In"
+              },
+              "vertices": []
+            },
+            {
+              "source": {
+                "activity": "c6948e3d85f6f5b0",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "f621139c87bb3a08",
+                "port": "In"
+              },
+              "vertices": []
+            },
+            {
+              "source": {
+                "activity": "f621139c87bb3a08",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "5b39e0bc7fc9cef4",
+                "port": "In"
+              },
+              "vertices": []
+            },
+            {
+              "source": {
+                "activity": "efc3e0a22222426e",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "f621139c87bb3a08",
+                "port": "In"
+              },
+              "vertices": []
+            },
+            {
+              "source": {
+                "activity": "51ef27cac950f1f4",
+                "port": "Approved"
+              },
+              "target": {
+                "activity": "efc3e0a22222426e",
+                "port": "In"
+              },
+              "vertices": []
+            },
+            {
+              "source": {
+                "activity": "3436f2e3ede30fc6",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "51ef27cac950f1f4",
+                "port": "In"
+              },
+              "vertices": []
+            },
+            {
+              "source": {
+                "activity": "51ef27cac950f1f4",
+                "port": "Rejected"
+              },
+              "target": {
+                "activity": "1541eb1b6aca41a5",
+                "port": "In"
+              },
+              "vertices": []
+            },
+            {
+              "source": {
+                "activity": "5b39e0bc7fc9cef4",
+                "port": "Done"
+              },
+              "target": {
+                "activity": "52bea87e3acae274",
+                "port": "In"
+              },
+              "vertices": []
+            }
+          ]
+        },
+        "id": "2a56ea62ad6820c5",
+        "nodeId": "Workflow1:9a6b9ec59fa082f2:2a56ea62ad6820c5",
+        "name": "ParallelForEach2",
+        "type": "Elsa.ParallelForEach",
+        "version": 1,
+        "customProperties": {
+          "canStartWorkflow": false,
+          "runAsynchronously": false
+        },
+        "metadata": {
+          "designer": {
+            "position": {
+              "x": 1323.2583389282227,
+              "y": 127.17501068115234
+            },
+            "size": {
+              "width": 203.28334045410156,
+              "height": 137.98333740234375
+            }
+          }
+        }
+      },
+      {
+        "id": "77c1af21e6d0b769",
+        "nodeId": "Workflow1:9a6b9ec59fa082f2:77c1af21e6d0b769",
+        "name": "Finish1",
+        "type": "Elsa.Finish",
+        "version": 1,
+        "customProperties": {
+          "canStartWorkflow": false,
+          "runAsynchronously": false
+        },
+        "metadata": {
+          "designer": {
+            "position": {
+              "x": 1615.3083419799805,
+              "y": 162.17501068115234
+            },
+            "size": {
+              "width": 130.81666564941406,
+              "height": 67.98333740234375
+            }
+          }
+        }
+      },
+      {
+        "statusCode": {
+          "typeName": "System.Net.HttpStatusCode, System.Net.Primitives",
+          "expression": {
+            "type": "Literal",
+            "value": "Accepted"
+          }
+        },
+        "content": null,
+        "contentType": null,
+        "responseHeaders": {
+          "typeName": "HttpHeaders",
+          "expression": {
+            "type": "Literal",
+            "value": "{}"
+          }
+        },
+        "id": "3b72ffe942307ea0",
+        "nodeId": "Workflow1:9a6b9ec59fa082f2:3b72ffe942307ea0",
+        "name": "WriteHttpResponse1",
+        "type": "Elsa.WriteHttpResponse",
+        "version": 1,
+        "customProperties": {
+          "canStartWorkflow": false,
+          "runAsynchronously": false
+        },
+        "metadata": {
+          "designer": {
+            "position": {
+              "x": 780,
+              "y": 300
+            },
+            "size": {
+              "width": 201.5500030517578,
+              "height": 67.98333740234375
+            }
+          }
+        }
+      }
+    ],
+    "variables": [],
+    "connections": [
+      {
+        "source": {
+          "activity": "c6a6a1f75a3e403e",
+          "port": "Done"
+        },
+        "target": {
+          "activity": "6359d5b95c909aa6",
+          "port": "In"
+        },
+        "vertices": []
+      },
+      {
+        "source": {
+          "activity": "c6a6a1f75a3e403e",
+          "port": "Done"
+        },
+        "target": {
+          "activity": "3b72ffe942307ea0",
+          "port": "In"
+        },
+        "vertices": []
+      },
+      {
+        "source": {
+          "activity": "6359d5b95c909aa6",
+          "port": "Done"
+        },
+        "target": {
+          "activity": "ffb1dabd9b4978bc",
+          "port": "In"
+        },
+        "vertices": []
+      },
+      {
+        "source": {
+          "activity": "ac3f5827475231b5",
+          "port": "Done"
+        },
+        "target": {
+          "activity": "2a56ea62ad6820c5",
+          "port": "In"
+        },
+        "vertices": []
+      },
+      {
+        "source": {
+          "activity": "ffb1dabd9b4978bc",
+          "port": "Done"
+        },
+        "target": {
+          "activity": "ac3f5827475231b5",
+          "port": "In"
+        },
+        "vertices": []
+      },
+      {
+        "source": {
+          "activity": "2a56ea62ad6820c5",
+          "port": "Done"
+        },
+        "target": {
+          "activity": "77c1af21e6d0b769",
+          "port": "In"
+        },
+        "vertices": []
+      }
+    ]
+  }
+}

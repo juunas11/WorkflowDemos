@@ -1,6 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <Content Remove="content-moderation.json" />
+    <Content Remove="manual-moderation.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="content-moderation.json" />
+    <None Include="manual-moderation.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\WorkflowDemos.Elsa.Studio\WorkflowDemos.Elsa.Studio.csproj" />
     <ProjectReference Include="..\WorkflowDemos.Shared.DataStorage\WorkflowDemos.Shared.DataStorage.csproj" />
     <ProjectReference Include="..\WorkflowDemos.Shared.Email\WorkflowDemos.Shared.Email.csproj" />
