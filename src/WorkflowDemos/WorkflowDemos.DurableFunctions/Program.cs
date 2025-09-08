@@ -15,7 +15,7 @@ builder.ConfigureFunctionsWebApplication();
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights()
-    .AddMailgunEmailService(builder.Configuration["MailgunFromEmail"]!, builder.Configuration["MailgunDomain"]!, builder.Configuration["MailgunApiKey"]!)
+    .AddMailgunEmailService(builder.Configuration["MailgunFromEmail"]!, builder.Configuration["MailgunDomain"]!, builder.Configuration["MailgunApiKey"]!, builder.Configuration["ModeratorEmail"]!, builder.Configuration["ModerationPortalUrl"]!)
     .AddAzureContentSafetyModeration(builder.Configuration["AzureContentSafetyEndpoint"]!, builder.Configuration["AzureContentSafetyApiKey"]!)
     .AddTableStorageService(builder.Configuration["StorageConnectionString"]!);
 

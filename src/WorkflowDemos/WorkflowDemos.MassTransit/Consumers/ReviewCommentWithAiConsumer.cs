@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using WorkflowDemos.MassTransit.Commands;
 using WorkflowDemos.MassTransit.Messages;
 using WorkflowDemos.Shared.Moderation;
 

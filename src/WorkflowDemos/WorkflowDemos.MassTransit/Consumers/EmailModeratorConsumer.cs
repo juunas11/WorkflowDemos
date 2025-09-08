@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using WorkflowDemos.MassTransit.Messages;
+using WorkflowDemos.MassTransit.Commands;
 using WorkflowDemos.Shared.Email;
 
 namespace WorkflowDemos.MassTransit.Consumers;
@@ -10,7 +10,7 @@ public class EmailModeratorConsumer(
 {
     public async Task Consume(ConsumeContext<EmailModerator> context)
     {
-        await emailService.SendModerationRequiredEmailAsync("MassTransit", context.Message.CommentId.ToString());
+        await emailService.SendModerationRequiredEmailAsync(Constants.PartitionKey, context.Message.CommentId.ToString());
         logger.LogInformation("Sent moderation email for comment {CommentId}", context.Message.CommentId);
     }
 }

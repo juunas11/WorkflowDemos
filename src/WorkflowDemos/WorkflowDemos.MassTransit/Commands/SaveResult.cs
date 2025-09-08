@@ -1,6 +1,6 @@
-﻿namespace WorkflowDemos.MassTransit.Messages;
+﻿namespace WorkflowDemos.MassTransit.Commands;
 
-public record ResultSaved
+public record SaveResult
 {
     public required Guid CommentId { get; init; }
     public required bool ApprovedByAi { get; init; }

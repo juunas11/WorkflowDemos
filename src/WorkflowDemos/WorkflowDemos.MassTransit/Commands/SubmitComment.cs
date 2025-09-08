@@ -1,4 +1,4 @@
-﻿namespace WorkflowDemos.MassTransit.Messages;
+﻿namespace WorkflowDemos.MassTransit.Commands;
 
 public record SubmitComment
 {

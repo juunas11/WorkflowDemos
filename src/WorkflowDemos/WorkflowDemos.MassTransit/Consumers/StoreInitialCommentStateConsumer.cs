@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using WorkflowDemos.MassTransit.Commands;
 using WorkflowDemos.MassTransit.Messages;
 using WorkflowDemos.Shared.DataStorage;
 
@@ -12,11 +13,11 @@ public class StoreInitialCommentStateConsumer(
     {
         await dataStorageService.CreateEntityAsync(new CommentEntity
         {
-            PartitionKey = "MassTransit",
+            PartitionKey = Constants.PartitionKey,
             RowKey = context.Message.CommentId.ToString(),
             Comment = context.Message.CommentText,
             State = ModerationState.PendingAiReview,
-            ManualApprovalWorkflowId = null,
+            ManualApprovalWorkflowId = context.Message.CommentId.ToString(),
         });
         logger.LogInformation("Stored initial state for comment {CommentId}", context.Message.CommentId);
         await context.Publish<CommentInitialStateStored>(new

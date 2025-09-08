@@ -1,6 +1,6 @@
-﻿namespace WorkflowDemos.MassTransit.Messages;
+﻿namespace WorkflowDemos.MassTransit.Commands;
 
-public record StoreInitialCommentState
+public record ReviewCommentWithAi
 {
     public required Guid CommentId { get; init; }
     public required string CommentText { get; init; }

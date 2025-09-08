@@ -10,7 +10,7 @@ public class SaveResultConsumer(
 {
     public async Task Consume(ConsumeContext<ResultSaved> context)
     {
-        var comment = await dataStorageService.GetEntityAsync("MassTransit", context.Message.CommentId.ToString());
+        var comment = await dataStorageService.GetEntityAsync(Constants.PartitionKey, context.Message.CommentId.ToString());
         if (comment == null)
         {
             logger.LogWarning("Could not find comment {CommentId} to update state", context.Message.CommentId);

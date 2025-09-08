@@ -1,4 +1,6 @@
 using MassTransit;
+using Microsoft.AspNetCore.Mvc;
+using WorkflowDemos.MassTransit.Commands;
 using WorkflowDemos.MassTransit.Consumers;
 using WorkflowDemos.MassTransit.Messages;
 using WorkflowDemos.MassTransit.Sagas;
@@ -17,6 +19,7 @@ builder.Services.AddMassTransit(cfg =>
     cfg.AddConsumer<ReviewCommentWithAiConsumer>();
     cfg.AddConsumer<EmailModeratorConsumer>();
     cfg.AddConsumer<SaveResultConsumer>();
+    cfg.AddConsumer<SetCommentPendingHumanReviewConsumer>();
 
     cfg.UsingInMemory((context, transport) =>
     {
@@ -34,32 +37,39 @@ builder.Services.AddTableStorageService(builder.Configuration["Storage:Connectio
 
 var app = builder.Build();
 
-app.MapGet("/", async (IPublishEndpoint publishEndpoint) =>
+app.MapPost("/comments", async (IPublishEndpoint publishEndpoint, [FromBody] OrchestrationInput input) =>
 {
-    var commentId = Guid.NewGuid();
-    await publishEndpoint.Publish<SubmitComment>(new
+    var commentIds = new List<Guid>();
+    foreach (var comment in input.Comments)
     {
-        CommentId = commentId,
-        CommentText = "I hate you.",
-    });
-    return Results.Ok($"Submitted comment with ID: {commentId}");
+        var commentId = Guid.NewGuid();
+        await publishEndpoint.Publish<SubmitComment>(new
+        {
+            CommentId = commentId,
+            CommentText = comment,
+        });
+        commentIds.Add(commentId);
+    }
+
+    return Results.NoContent();
 });
 
-app.MapGet("/approve/{commentId}", async (IPublishEndpoint publishEndpoint, Guid commentId) =>
+app.MapPost("/comments/{commentId}/approve", async (IPublishEndpoint publishEndpoint, Guid commentId) =>
 {
     await publishEndpoint.Publish<CommentApprovedByHuman>(new
     {
         CommentId = commentId
     });
-    return Results.Ok($"Approved comment with ID: {commentId}");
+    return Results.NoContent();
 });
-app.MapGet("/reject/{commentId}", async (IPublishEndpoint publishEndpoint, Guid commentId) =>
+
+app.MapPost("/comments/{commentId}/reject", async (IPublishEndpoint publishEndpoint, Guid commentId) =>
 {
     await publishEndpoint.Publish<CommentRejectedByHuman>(new
     {
         CommentId = commentId
     });
-    return Results.Ok($"Rejected comment with ID: {commentId}");
+    return Results.NoContent();
 });
 
 app.Run();

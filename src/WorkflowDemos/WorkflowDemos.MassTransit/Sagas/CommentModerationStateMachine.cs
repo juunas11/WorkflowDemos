@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using WorkflowDemos.MassTransit.Commands;
 using WorkflowDemos.MassTransit.Messages;
 
 namespace WorkflowDemos.MassTransit.Sagas;
@@ -33,24 +34,28 @@ public class CommentModerationStateMachine : MassTransitStateMachine<CommentMode
 
         During(StoringInitialState,
             When(CommentInitialStateStored)
-                .Publish(context => new ReviewCommentWithAi
+                .PublishAsync(context => context.Init<ReviewCommentWithAi>(new
                 {
                     CommentId = context.Saga.CorrelationId,
                     CommentText = context.Saga.CommentText!,
-                })
+                }))
                 .TransitionTo(ReviewingWithAi)
         );
 
         During (ReviewingWithAi,
             When(CommentApprovedByAi)
-                .Publish(context => new SaveResult
+                .PublishAsync(context => context.Init<SaveResult>(new
                 {
                     CommentId = context.Saga.CorrelationId,
                     ApprovedByAi = true,
                     ApprovedByHuman = false,
-                })
+                }))
                 .TransitionTo(SavingResult),
             When(CommentRejectedByAi)
+                .PublishAsync(context => context.Init<SetCommentPendingHumanReview>(new
+                {
+                    CommentId = context.Saga.CorrelationId,
+                }))
                 .PublishAsync(context => context.Init<EmailModerator>(new
                 {
                     CommentId = context.Saga.CorrelationId,
@@ -60,20 +65,20 @@ public class CommentModerationStateMachine : MassTransitStateMachine<CommentMode
 
         During(PendingHumanReview,
             When(CommentApprovedByHuman)
-                .Publish(context => new SaveResult
+                .PublishAsync(context => context.Init<SaveResult>(new
                 {
                     CommentId = context.Saga.CorrelationId,
                     ApprovedByAi = false,
                     ApprovedByHuman = true,
-                })
+                }))
                 .TransitionTo(SavingResult),
             When(CommentRejectedByHuman)
-                .Publish(context => new SaveResult
+                .PublishAsync(context => context.Init<SaveResult>(new
                 {
                     CommentId = context.Saga.CorrelationId,
                     ApprovedByAi = false,
                     ApprovedByHuman = false,
-                })
+                }))
                 .TransitionTo(SavingResult)
         );
 
