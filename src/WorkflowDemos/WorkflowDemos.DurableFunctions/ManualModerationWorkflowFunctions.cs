@@ -2,7 +2,6 @@
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
-using Microsoft.Extensions.Configuration;
 using WorkflowDemos.Shared.DataStorage;
 using WorkflowDemos.Shared.Email;
 
@@ -10,8 +9,7 @@ namespace WorkflowDemos.DurableFunctions;
 
 public class ManualModerationWorkflowFunctions(
     IEmailService emailService,
-    IDataStorageService dataStorageService,
-    IConfiguration configuration)
+    IDataStorageService dataStorageService)
 {
     [Function(nameof(ManualModerationWorkflow))]
     public async Task<Comment> ManualModerationWorkflow(
@@ -63,10 +61,7 @@ public class ManualModerationWorkflowFunctions(
         [ActivityTrigger] string commentId,
         FunctionContext executionContext)
     {
-        await emailService.SendEmailAsync(
-            configuration["ModeratorEmail"]!,
-            "Manual Moderation Required",
-            $"A comment requires manual moderation. Please review it in the moderation portal: {configuration["ModerationPortalUrl"]}.\n\nPartition key: DurableFunctions\n\nRow key: {commentId}");
+        await emailService.SendModerationRequiredEmailAsync("DurableFunctions", commentId);
     }
 
     [Function(nameof(UpdateCommentWaitingManualApproval))]

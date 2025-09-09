@@ -1,0 +1,31 @@
+[
+  {
+    "Name": "Start All",
+    "Projects": [
+      {
+        "Path": "WorkflowDemos.DurableFunctions\\WorkflowDemos.DurableFunctions.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "WorkflowDemos.Temporal\\WorkflowDemos.Temporal.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "WorkflowDemos.Web.ModerationPortal\\WorkflowDemos.Web.ModerationPortal.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "WorkflowDemos.Elsa.Server\\WorkflowDemos.Elsa.Server.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "WorkflowDemos.MassTransit\\WorkflowDemos.MassTransit.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "WorkflowDemos.NServiceBus\\WorkflowDemos.NServiceBus.csproj",
+        "Action": "StartWithoutDebugging"
+      }
+    ]
+  }
+]

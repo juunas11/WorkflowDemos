@@ -14,7 +14,12 @@ var configuration = new ConfigurationBuilder()
 
 var services = new ServiceCollection();
 services.AddSingleton<IConfiguration>(configuration);
-services.AddMailgunEmailService(configuration["Mailgun:FromEmail"]!, configuration["Mailgun:Domain"]!, configuration["Mailgun:ApiKey"]!);
+services.AddMailgunEmailService(
+    configuration["Mailgun:FromEmail"]!,
+    configuration["Mailgun:Domain"]!,
+    configuration["Mailgun:ApiKey"]!,
+    configuration["ModeratorEmail"]!,
+    configuration["ModerationPortalUrl"]!);
 services.AddAzureContentSafetyModeration(configuration["AzureContentSafety:Endpoint"]!, configuration["AzureContentSafety:ApiKey"]!);
 services.AddTableStorageService(configuration["Storage:ConnectionString"]!);
 

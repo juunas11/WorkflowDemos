@@ -22,7 +22,7 @@ public class ContentModerationActivities(
     [Activity]
     public async Task EmailModeratorAsync(string commentId)
     {
-        await emailService.SendModerationRequiredEmailAsync(commentId);
+        await emailService.SendModerationRequiredEmailAsync(PartitionKey, commentId);
     }
 
     [Activity]
