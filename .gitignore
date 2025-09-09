@@ -419,3 +419,4 @@ FodyWeavers.xsd
 src/WorkflowDemos/WorkflowDemos.Elsa.Server/elsa.sqlite.db
 src/WorkflowDemos/WorkflowDemos.Elsa.Server/elsa.sqlite.db-shm
 src/WorkflowDemos/WorkflowDemos.Elsa.Server/elsa.sqlite.db-wal
+src/WorkflowDemos/.learningtransport

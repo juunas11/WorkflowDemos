@@ -37,9 +37,8 @@ builder.Services.AddTableStorageService(builder.Configuration["Storage:Connectio
 
 var app = builder.Build();
 
-app.MapPost("/comments", async (IPublishEndpoint publishEndpoint, [FromBody] OrchestrationInput input) =>
+app.MapPost("/comments", async (IPublishEndpoint publishEndpoint, OrchestrationInput input) =>
 {
-    var commentIds = new List<Guid>();
     foreach (var comment in input.Comments)
     {
         var commentId = Guid.NewGuid();
@@ -48,7 +47,6 @@ app.MapPost("/comments", async (IPublishEndpoint publishEndpoint, [FromBody] Orc
             CommentId = commentId,
             CommentText = comment,
         });
-        commentIds.Add(commentId);
     }
 
     return Results.NoContent();

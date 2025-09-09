@@ -12,6 +12,7 @@ builder.Services.AddTransient<IOrchestratorIntegrationService, DurableFunctionsI
 builder.Services.AddTransient<IOrchestratorIntegrationService, TemporalIntegrationService>();
 builder.Services.AddTransient<IOrchestratorIntegrationService, ElsaIntegrationService>();
 builder.Services.AddTransient<IOrchestratorIntegrationService, MassTransitIntegrationService>();
+builder.Services.AddTransient<IOrchestratorIntegrationService, NServiceBusIntegrationService>();
 builder.Services.AddTransient<OrchestratorManager>();
 
 var app = builder.Build();

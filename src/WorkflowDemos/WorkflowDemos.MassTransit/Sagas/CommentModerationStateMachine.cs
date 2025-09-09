@@ -106,13 +106,3 @@ public class CommentModerationStateMachine : MassTransitStateMachine<CommentMode
     public State PendingHumanReview { get; private set; } = null!;
     public State SavingResult { get; private set; } = null!;
 }
-
-public class CommentModerationState : SagaStateMachineInstance
-{
-    public Guid CorrelationId { get; set; }
-    public string CurrentState { get; set; } = null!;
-
-    public string? CommentText { get; set; }
-    public bool ApprovedByAi { get; set; }
-    public bool ApprovedByHuman { get; set; }
-}

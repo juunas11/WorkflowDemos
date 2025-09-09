@@ -7,7 +7,7 @@ namespace WorkflowDemos.MassTransit.Consumers;
 
 public class SaveResultConsumer(
     IDataStorageService dataStorageService,
-    ILogger<EmailModeratorConsumer> logger) : IConsumer<SaveResult>
+    ILogger<SaveResultConsumer> logger) : IConsumer<SaveResult>
 {
     public async Task Consume(ConsumeContext<SaveResult> context)
     {
