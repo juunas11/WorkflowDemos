@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using WorkflowDemos.MassTransit.Commands;
 using WorkflowDemos.MassTransit.Messages;
 using WorkflowDemos.Shared.DataStorage;
 
@@ -6,9 +7,9 @@ namespace WorkflowDemos.MassTransit.Consumers;
 
 public class SaveResultConsumer(
     IDataStorageService dataStorageService,
-    ILogger<EmailModeratorConsumer> logger) : IConsumer<ResultSaved>
+    ILogger<EmailModeratorConsumer> logger) : IConsumer<SaveResult>
 {
-    public async Task Consume(ConsumeContext<ResultSaved> context)
+    public async Task Consume(ConsumeContext<SaveResult> context)
     {
         var comment = await dataStorageService.GetEntityAsync(Constants.PartitionKey, context.Message.CommentId.ToString());
         if (comment == null)
