@@ -1,0 +1,220 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "triggers": {
+      "Comment_received": {
+        "type": "Request",
+        "kind": "Http",
+        "inputs": {
+          "method": "POST",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "Comment": {
+                "type": "string"
+              }
+            }
+          },
+          "relativePath": "/comments"
+        }
+      }
+    },
+    "actions": {
+      "Initialize_variables": {
+        "runAfter": {},
+        "type": "InitializeVariable",
+        "inputs": {
+          "variables": [
+            {
+              "name": "CommentText",
+              "type": "string",
+              "value": "@{triggerBody()?['Comment']}"
+            },
+            {
+              "name": "CommentId",
+              "type": "string",
+              "value": "@{guid()}"
+            },
+            {
+              "name": "CommentApprovedByAi",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "name": "CommentApprovedByHuman",
+              "type": "boolean",
+              "value": false
+            }
+          ]
+        }
+      },
+      "Store_initial_comment_state": {
+        "runAfter": {
+          "Initialize_variables": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azuretables']['connectionId']"
+            }
+          },
+          "method": "post",
+          "body": {
+            "PartitionKey": "LogicApps",
+            "RowKey": "@variables('CommentId')",
+            "ManualApprovalWorkflowId": null,
+            "Comment": "@variables('CommentText')",
+            "State": "PendingAiReview"
+          },
+          "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities"
+        }
+      },
+      "Call_Azure_Content_Safety": {
+        "runAfter": {
+          "Store_initial_comment_state": [
+            "Succeeded"
+          ]
+        },
+        "type": "Http",
+        "inputs": {
+          "uri": "https://<YOUR CONTENT SAFETY ACCOUNT>.cognitiveservices.azure.com/contentsafety/text:analyze",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Ocp-Apim-Subscription-Key": "<YOUR SUBSCRIPTION KEY>"
+          },
+          "queries": {
+            "api-version": "2023-10-01"
+          },
+          "body": {
+            "text": "@variables('CommentText')"
+          }
+        },
+        "runtimeConfiguration": {
+          "contentTransfer": {
+            "transferMode": "Chunked"
+          }
+        }
+      },
+      "Set_approved_by_AI": {
+        "runAfter": {
+          "Call_Azure_Content_Safety": [
+            "Succeeded"
+          ]
+        },
+        "type": "SetVariable",
+        "inputs": {
+          "name": "CommentApprovedByAi",
+          "value": "@and(and(and(equals(body('Call_Azure_Content_Safety').categoriesAnalysis[0].severity, 0), equals(body('Call_Azure_Content_Safety').categoriesAnalysis[1].severity, 0), equals(body('Call_Azure_Content_Safety').categoriesAnalysis[2].severity, 0), equals(body('Call_Azure_Content_Safety').categoriesAnalysis[3].severity, 0))))"
+        }
+      },
+      "If_approved_by_AI": {
+        "actions": {
+          "Set_State_ApprovedByAi": {
+            "type": "ApiConnection",
+            "inputs": {
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['azuretables']['connectionId']"
+                }
+              },
+              "method": "patch",
+              "body": {
+                "State": "ApprovedByAi"
+              },
+              "headers": {
+                "If-Match": "*"
+              },
+              "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities/etag(PartitionKey='@{encodeURIComponent('LogicApps')}',RowKey='@{encodeURIComponent(variables('CommentId'))}')"
+            }
+          }
+        },
+        "runAfter": {
+          "Set_approved_by_AI": [
+            "Succeeded"
+          ]
+        },
+        "else": {
+          "actions": {
+            "Set_State_PendingHumanReview": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuretables']['connectionId']"
+                  }
+                },
+                "method": "patch",
+                "body": {
+                  "State": "PendingHumanReview",
+                  "ManualApprovalWorkflowId": "@variables('CommentId')"
+                },
+                "headers": {
+                  "If-Match": "*"
+                },
+                "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities/etag(PartitionKey='@{encodeURIComponent('LogicApps')}',RowKey='@{encodeURIComponent(variables('CommentId'))}')"
+              }
+            },
+            "Send_Email": {
+              "runAfter": {
+                "Set_State_PendingHumanReview": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "uri": "https://api.mailgun.net/v3/<YOUR MAILGUN DOMAIN>/messages",
+                "method": "POST",
+                "authentication": {
+                  "type": "Basic",
+                  "username": "api",
+                  "password": "<YOUR MAILGUN API KEY>"
+                }
+              },
+              "runtimeConfiguration": {
+                "contentTransfer": {
+                  "transferMode": "Chunked"
+                }
+              }
+            }
+          }
+        },
+        "expression": {
+          "and": [
+            {
+              "equals": [
+                "@variables('CommentApprovedByAi')",
+                true
+              ]
+            }
+          ]
+        },
+        "type": "If"
+      }
+    },
+    "outputs": {},
+    "parameters": {
+      "$connections": {
+        "type": "Object",
+        "defaultValue": {}
+      }
+    }
+  },
+  "parameters": {
+    "$connections": {
+      "type": "Object",
+      "value": {
+        "azuretables": {
+          "id": "/subscriptions/<YOUR SUBSCRIPTION ID>/providers/Microsoft.Web/locations/westeurope/managedApis/azuretables",
+          "connectionId": "/subscriptions/<YOUR SUBSCRIPTION ID>/resourceGroups/rg-workflowdemos/providers/Microsoft.Web/connections/azuretables",
+          "connectionName": "azuretables"
+        }
+      }
+    }
+  }
+}

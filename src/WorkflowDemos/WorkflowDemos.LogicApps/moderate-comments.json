@@ -1,0 +1,61 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "triggers": {
+      "Comments_received": {
+        "type": "Request",
+        "kind": "Http",
+        "inputs": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "Comments": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "actions": {
+      "For_each": {
+        "foreach": "@triggerBody()?['Comments']",
+        "actions": {
+          "Call_Logic_App": {
+            "type": "Http",
+            "inputs": {
+              "uri": "<YOUR moderate-comment LOGIC APP URL HERE>",
+              "method": "POST",
+              "headers": {
+                "Content-Type": "application/json"
+              },
+              "body": {
+                "Comment": "@items('For_each')"
+              }
+            },
+            "operationOptions": "DisableAsyncPattern"
+          }
+        },
+        "runAfter": {},
+        "type": "Foreach"
+      }
+    },
+    "outputs": {},
+    "parameters": {
+      "$connections": {
+        "type": "Object",
+        "defaultValue": {}
+      }
+    }
+  },
+  "parameters": {
+    "$connections": {
+      "type": "Object",
+      "value": {}
+    }
+  }
+}

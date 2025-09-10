@@ -23,6 +23,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.MassTransit",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowDemos.NServiceBus", "WorkflowDemos.NServiceBus\WorkflowDemos.NServiceBus.csproj", "{69303A54-7C90-4DE9-9EF1-2D4A4732D12B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WorkflowDemos.LogicApps", "WorkflowDemos.LogicApps", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		WorkflowDemos.LogicApps\manual-moderation.json = WorkflowDemos.LogicApps\manual-moderation.json
+		WorkflowDemos.LogicApps\moderate-comment.json = WorkflowDemos.LogicApps\moderate-comment.json
+		WorkflowDemos.LogicApps\moderate-comments.json = WorkflowDemos.LogicApps\moderate-comments.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

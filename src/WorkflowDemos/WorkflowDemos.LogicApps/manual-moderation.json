@@ -1,0 +1,120 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "triggers": {
+      "Request_received": {
+        "type": "Request",
+        "kind": "Http",
+        "inputs": {
+          "method": "POST",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "CommentId": {
+                "type": "string"
+              },
+              "IsApproved": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "actions": {
+      "Get_entity_(V2)": {
+        "runAfter": {},
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azuretables']['connectionId']"
+            }
+          },
+          "method": "get",
+          "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities(PartitionKey='@{encodeURIComponent('LogicApps')}',RowKey='@{encodeURIComponent(triggerBody()?['CommentId'])}')"
+        }
+      },
+      "If_approved": {
+        "actions": {
+          "Set_state_ApprovedByHuman": {
+            "type": "ApiConnection",
+            "inputs": {
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['azuretables']['connectionId']"
+                }
+              },
+              "method": "patch",
+              "body": {
+                "State": "ApprovedByHuman"
+              },
+              "headers": {
+                "If-Match": "*"
+              },
+              "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities/etag(PartitionKey='@{encodeURIComponent('LogicApps')}',RowKey='@{encodeURIComponent(triggerBody()?['CommentId'])}')"
+            }
+          }
+        },
+        "runAfter": {
+          "Get_entity_(V2)": [
+            "Succeeded"
+          ]
+        },
+        "else": {
+          "actions": {
+            "Set_State_Rejected": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuretables']['connectionId']"
+                  }
+                },
+                "method": "patch",
+                "body": {
+                  "State": "Rejected"
+                },
+                "headers": {
+                  "If-Match": "*"
+                },
+                "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities/etag(PartitionKey='@{encodeURIComponent('LogicApps')}',RowKey='@{encodeURIComponent(triggerBody()?['CommentId'])}')"
+              }
+            }
+          }
+        },
+        "expression": {
+          "and": [
+            {
+              "equals": [
+                "@triggerBody()?['IsApproved']",
+                true
+              ]
+            }
+          ]
+        },
+        "type": "If"
+      }
+    },
+    "outputs": {},
+    "parameters": {
+      "$connections": {
+        "type": "Object",
+        "defaultValue": {}
+      }
+    }
+  },
+  "parameters": {
+    "$connections": {
+      "type": "Object",
+      "value": {
+        "azuretables": {
+          "id": "/subscriptions/<YOUR SUBSCRIPTION ID>/providers/Microsoft.Web/locations/westeurope/managedApis/azuretables",
+          "connectionId": "/subscriptions/<YOUR SUBSCRIPTION ID>/resourceGroups/rg-workflowdemos/providers/Microsoft.Web/connections/azuretables",
+          "connectionName": "azuretables"
+        }
+      }
+    }
+  }
+}
