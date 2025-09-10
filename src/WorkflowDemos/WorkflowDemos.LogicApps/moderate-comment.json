@@ -22,7 +22,6 @@
     },
     "actions": {
       "Initialize_variables": {
-        "runAfter": {},
         "type": "InitializeVariable",
         "inputs": {
           "variables": [
@@ -42,14 +41,10 @@
               "value": false
             }
           ]
-        }
+        },
+        "runAfter": {}
       },
       "Store_initial_comment_state": {
-        "runAfter": {
-          "Initialize_variables": [
-            "Succeeded"
-          ]
-        },
         "type": "ApiConnection",
         "inputs": {
           "host": {
@@ -66,14 +61,14 @@
             "State": "PendingAiReview"
           },
           "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities"
+        },
+        "runAfter": {
+          "Initialize_variables": [
+            "Succeeded"
+          ]
         }
       },
       "Call_Azure_Content_Safety": {
-        "runAfter": {
-          "Store_initial_comment_state": [
-            "Succeeded"
-          ]
-        },
         "type": "Http",
         "inputs": {
           "uri": "https://<YOUR CONTENT SAFETY ACCOUNT>.cognitiveservices.azure.com/contentsafety/text:analyze",
@@ -90,6 +85,11 @@
             "text": "@variables('CommentText')"
           }
         },
+        "runAfter": {
+          "Store_initial_comment_state": [
+            "Succeeded"
+          ]
+        },
         "runtimeConfiguration": {
           "contentTransfer": {
             "transferMode": "Chunked"
@@ -97,18 +97,29 @@
         }
       },
       "Set_approved_by_AI": {
-        "runAfter": {
-          "Call_Azure_Content_Safety": [
-            "Succeeded"
-          ]
-        },
         "type": "SetVariable",
         "inputs": {
           "name": "CommentApprovedByAi",
           "value": "@and(and(and(equals(body('Call_Azure_Content_Safety').categoriesAnalysis[0].severity, 0), equals(body('Call_Azure_Content_Safety').categoriesAnalysis[1].severity, 0), equals(body('Call_Azure_Content_Safety').categoriesAnalysis[2].severity, 0), equals(body('Call_Azure_Content_Safety').categoriesAnalysis[3].severity, 0))))"
+        },
+        "runAfter": {
+          "Call_Azure_Content_Safety": [
+            "Succeeded"
+          ]
         }
       },
       "If_approved_by_AI": {
+        "type": "If",
+        "expression": {
+          "and": [
+            {
+              "equals": [
+                "@variables('CommentApprovedByAi')",
+                true
+              ]
+            }
+          ]
+        },
         "actions": {
           "Set_State_ApprovedByAi": {
             "type": "ApiConnection",
@@ -128,11 +139,6 @@
               "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities/etag(PartitionKey='@{encodeURIComponent('LogicApps')}',RowKey='@{encodeURIComponent(variables('CommentId'))}')"
             }
           }
-        },
-        "runAfter": {
-          "Set_approved_by_AI": [
-            "Succeeded"
-          ]
         },
         "else": {
           "actions": {
@@ -156,20 +162,24 @@
               }
             },
             "Send_Email": {
-              "runAfter": {
-                "Set_State_PendingHumanReview": [
-                  "Succeeded"
-                ]
-              },
               "type": "Http",
               "inputs": {
                 "uri": "https://api.mailgun.net/v3/<YOUR MAILGUN DOMAIN>/messages",
                 "method": "POST",
+                "headers": {
+                  "Content-Type": "application/x-www-form-urlencoded"
+                },
+                "body": "@concat('from=', encodeUriComponent('<YOUR SENDER>'), '&to=', encodeUriComponent('<YOUR RECEIVER>'), '&subject=', encodeUriComponent('Manual Moderation Required'), '&text=', encodeUriComponent('A comment requires manual moderation. Please review it in the moderation portal: https://localhost:7190. Partition key: LogicApps. Row key: '), variables('CommentId'))",
                 "authentication": {
                   "type": "Basic",
                   "username": "api",
                   "password": "<YOUR MAILGUN API KEY>"
                 }
+              },
+              "runAfter": {
+                "Set_State_PendingHumanReview": [
+                  "Succeeded"
+                ]
               },
               "runtimeConfiguration": {
                 "contentTransfer": {
@@ -179,17 +189,11 @@
             }
           }
         },
-        "expression": {
-          "and": [
-            {
-              "equals": [
-                "@variables('CommentApprovedByAi')",
-                true
-              ]
-            }
+        "runAfter": {
+          "Set_approved_by_AI": [
+            "Succeeded"
           ]
-        },
-        "type": "If"
+        }
       }
     },
     "outputs": {},
