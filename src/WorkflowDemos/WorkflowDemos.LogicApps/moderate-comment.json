@@ -40,11 +40,6 @@
               "name": "CommentApprovedByAi",
               "type": "boolean",
               "value": false
-            },
-            {
-              "name": "CommentApprovedByHuman",
-              "type": "boolean",
-              "value": false
             }
           ]
         }
