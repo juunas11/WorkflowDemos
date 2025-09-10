@@ -23,7 +23,7 @@
       }
     },
     "actions": {
-      "Get_entity_(V2)": {
+      "Get_comment": {
         "runAfter": {},
         "type": "ApiConnection",
         "inputs": {

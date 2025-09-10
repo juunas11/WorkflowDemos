@@ -14,6 +14,7 @@ builder.Services.AddTransient<IOrchestratorIntegrationService, ElsaIntegrationSe
 builder.Services.AddTransient<IOrchestratorIntegrationService, MassTransitIntegrationService>();
 builder.Services.AddTransient<IOrchestratorIntegrationService, NServiceBusIntegrationService>();
 builder.Services.AddTransient<IOrchestratorIntegrationService, LogicAppsIntegrationService>();
+builder.Services.AddTransient<IOrchestratorIntegrationService, PowerAutomateIntegrationService>();
 builder.Services.AddTransient<OrchestratorManager>();
 
 var app = builder.Build();
