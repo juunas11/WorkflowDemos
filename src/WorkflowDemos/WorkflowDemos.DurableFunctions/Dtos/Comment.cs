@@ -1,4 +1,4 @@
-﻿namespace WorkflowDemos.Temporal;
+namespace WorkflowDemos.DurableFunctions.Dtos;
 
 public class Comment
 {

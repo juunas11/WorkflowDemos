@@ -2,6 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
+using WorkflowDemos.DurableFunctions.Dtos;
 using WorkflowDemos.Shared.DataStorage;
 using WorkflowDemos.Shared.Moderation;
 
@@ -12,14 +13,14 @@ public class ContentModerationWorkflowFunctions(
     IDataStorageService dataStorageService)
 {
     [Function(nameof(ContentModerationWorkflow))]
-    public async Task<List<string>> ContentModerationWorkflow(
+    public async Task<ContentModerationWorkflowOutput> ContentModerationWorkflow(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
         // Get set of comments as input
-        var input = context.GetInput<WorkflowInput>();
+        var input = context.GetInput<ContentModerationWorkflowInput>();
         if (input?.Comments == null || input.Comments.Count == 0)
         {
-            return new List<string>();
+            return new ContentModerationWorkflowOutput(new List<string>());
         }
 
         var comments = input.Comments;
@@ -30,18 +31,20 @@ public class ContentModerationWorkflowFunctions(
         }
 
         var storeInitialStateTasks = comments.ConvertAll(comment =>
-            context.CallActivityAsync(nameof(StoreInitialCommentState), comment));
+            context.CallActivityAsync(nameof(StoreInitialCommentState), new StoreInitialCommentStateInput(comment.Id, comment.Text)));
         await Task.WhenAll(storeInitialStateTasks);
 
         // Run all comments through AI content filtering
-        var contentFilteringTasks = comments.ConvertAll(comment => context.CallActivityAsync<Comment>(nameof(CheckComment), comment));
+        var contentFilteringTasks = comments.ConvertAll(comment => context.CallActivityAsync<CheckCommentOutput>(nameof(CheckComment), new CheckCommentInput(comment)));
         // Wait for all content filtering tasks to complete
-        comments = (await Task.WhenAll(contentFilteringTasks)).ToList();
+        comments = (await Task.WhenAll(contentFilteringTasks))
+            .Select(x => x.Comment)
+            .ToList();
 
         var updateCommentStateTasks = comments
             .Where(comment => comment.ApprovedByAi)
             .Select(comment =>
-                context.CallActivityAsync(nameof(SetCommentApprovedByAi), comment.Id))
+                context.CallActivityAsync(nameof(SetCommentApprovedByAi), new SetCommentApprovedByAiInput(comment.Id)))
             .ToList();
         await Task.WhenAll(updateCommentStateTasks);
 
@@ -51,51 +54,56 @@ public class ContentModerationWorkflowFunctions(
             if (comment.ApprovedByAi)
             {
                 // Already approved by AI, no need for manual review
-                return Task.FromResult(comment);
+                return Task.FromResult(new ManualModerationWorkflowOutput(comment));
             }
 
-            return context.CallSubOrchestratorAsync<Comment>(nameof(ManualModerationWorkflowFunctions.ManualModerationWorkflow), comment);
+            return context.CallSubOrchestratorAsync<ManualModerationWorkflowOutput>(
+                nameof(ManualModerationWorkflowFunctions.ManualModerationWorkflow),
+                new ManualModerationWorkflowInput(comment));
         });
         // Wait for all manual approval tasks to complete
-        comments = (await Task.WhenAll(manualApprovalTasks)).ToList();
+        comments = (await Task.WhenAll(manualApprovalTasks))
+            .Select(x => x.Comment)
+            .ToList();
 
         // Return accepted comments
-        return comments
+        return new ContentModerationWorkflowOutput(comments
             .Where(comment => comment.ApprovedByAi || comment.ApprovedByHuman)
             .Select(comment => comment.Text)
-            .ToList();
+            .ToList());
     }
 
     [Function(nameof(StoreInitialCommentState))]
     public async Task StoreInitialCommentState(
-        [ActivityTrigger] Comment comment,
+        [ActivityTrigger] StoreInitialCommentStateInput input,
         FunctionContext executionContext)
     {
         await dataStorageService.CreateEntityAsync(new CommentEntity
         {
-            PartitionKey = "DurableFunctions",
-            RowKey = comment.Id,
-            Comment = comment.Text,
+            PartitionKey = Constants.PartitionKey,
+            RowKey = input.CommentId,
+            Comment = input.CommentText,
             State = ModerationState.PendingAiReview,
             ManualApprovalWorkflowId = null,
         });
     }
 
     [Function(nameof(CheckComment))]
-    public async Task<Comment> CheckComment(
-        [ActivityTrigger] Comment comment,
+    public async Task<CheckCommentOutput> CheckComment(
+        [ActivityTrigger] CheckCommentInput input,
         FunctionContext executionContext)
     {
+        var comment = input.Comment;
         comment.ApprovedByAi = await contentModerationService.CheckCommentAsync(comment.Text);
-        return comment;
+        return new CheckCommentOutput(comment);
     }
 
     [Function(nameof(SetCommentApprovedByAi))]
     public async Task SetCommentApprovedByAi(
-        [ActivityTrigger] string commentId,
+        [ActivityTrigger] SetCommentApprovedByAiInput input,
         FunctionContext executionContext)
     {
-        var entity = await dataStorageService.GetEntityAsync("DurableFunctions", commentId);
+        var entity = await dataStorageService.GetEntityAsync(Constants.PartitionKey, input.CommentId);
         entity!.State = ModerationState.ApprovedByAi;
         await dataStorageService.UpdateEntityAsync(entity);
     }
@@ -106,17 +114,12 @@ public class ContentModerationWorkflowFunctions(
         [DurableClient] DurableTaskClient client,
         FunctionContext executionContext)
     {
-        var requestBody = await req.ReadFromJsonAsync<WorkflowInput>();
+        var requestBody = await req.ReadFromJsonAsync<ContentModerationWorkflowInput>();
 
         string instanceId = await client.ScheduleNewOrchestrationInstanceAsync(
             nameof(ContentModerationWorkflow),
             requestBody);
 
         return await client.CreateCheckStatusResponseAsync(req, instanceId);
-    }
-
-    public class WorkflowInput
-    {
-        public required List<Comment> Comments { get; set; }
     }
 }
