@@ -1,4 +1,5 @@
 ﻿using Temporalio.Workflows;
+using WorkflowDemos.Temporal.Dtos;
 
 namespace WorkflowDemos.Temporal;
 
@@ -6,11 +7,11 @@ namespace WorkflowDemos.Temporal;
 public class ContentModerationWorkflow
 {
     [WorkflowRun]
-    public async Task<List<string>> RunAsync(WorkflowInput input)
+    public async Task<ContentModerationWorkflowOutput> RunAsync(ContentModerationWorkflowInput input)
     {
         if (input?.Comments == null || input.Comments.Count == 0)
         {
-            return new List<string>();
+            return new ContentModerationWorkflowOutput(new List<string>());
         }
 
         var comments = input.Comments;
@@ -26,16 +27,20 @@ public class ContentModerationWorkflow
         };
 
         var storeInitialStateTasks = comments.ConvertAll(comment =>
-            Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.StoreInitialCommentStateAsync(comment.Id, comment.Text), defaultActivityOptions));
+            Workflow.ExecuteActivityAsync(
+                (ContentModerationActivities x) => x.StoreInitialCommentStateAsync(new StoreInitialCommentStateInput(comment.Id, comment.Text)), defaultActivityOptions));
         await Workflow.WhenAllAsync(storeInitialStateTasks);
 
-        var contentFilteringTasks = input.Comments.ConvertAll(comment => Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.CheckCommentAsync(comment), defaultActivityOptions));
-        comments = (await Workflow.WhenAllAsync(contentFilteringTasks)).ToList();
+        var contentFilteringTasks = input.Comments.ConvertAll(comment =>
+        Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.CheckCommentAsync(new CheckCommentInput(comment)), defaultActivityOptions));
+        comments = (await Workflow.WhenAllAsync(contentFilteringTasks))
+            .Select(x => x.Comment)
+            .ToList();
 
         var updateCommentStateTasks = comments
             .Where(comment => comment.ApprovedByAi)
             .Select(comment =>
-                Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.SetCommentApprovedByAiAsync(comment.Id), defaultActivityOptions))
+                Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.SetCommentApprovedByAiAsync(new SetCommentApprovedByAiInput(comment.Id)), defaultActivityOptions))
             .ToList();
         await Workflow.WhenAllAsync(updateCommentStateTasks);
 
@@ -44,19 +49,21 @@ public class ContentModerationWorkflow
             if (comment.ApprovedByAi)
             {
                 // Already approved by AI, no need for manual review
-                return Task.FromResult(comment);
+                return Task.FromResult(new ManualModerationWorkflowOutput(comment));
             }
 
-            return Workflow.ExecuteChildWorkflowAsync((ManualModerationWorkflow x) => x.RunAsync(comment), new()
+            return Workflow.ExecuteChildWorkflowAsync((ManualModerationWorkflow x) => x.RunAsync(new ManualModerationWorkflowInput(comment)), new()
             {
                 ParentClosePolicy = ParentClosePolicy.Terminate,
             });
         });
-        comments = (await Workflow.WhenAllAsync(manualApprovalTasks)).ToList();
+        comments = (await Workflow.WhenAllAsync(manualApprovalTasks))
+            .Select(x => x.Comment)
+            .ToList();
 
-        return comments
+        return new ContentModerationWorkflowOutput(comments
             .Where(c => c.ApprovedByAi || c.ApprovedByHuman)
             .Select(c => c.Text)
-            .ToList();
+            .ToList());
     }
 }

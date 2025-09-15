@@ -2,6 +2,7 @@
 using WorkflowDemos.Shared.DataStorage;
 using WorkflowDemos.Shared.Email;
 using WorkflowDemos.Shared.Moderation;
+using WorkflowDemos.Temporal.Dtos;
 
 namespace WorkflowDemos.Temporal;
 
@@ -13,49 +14,50 @@ public class ContentModerationActivities(
     private const string PartitionKey = "Temporal";
 
     [Activity]
-    public async Task<Comment> CheckCommentAsync(Comment comment)
+    public async Task<CheckCommentOutput> CheckCommentAsync(CheckCommentInput input)
     {
+        var comment = input.Comment;
         comment.ApprovedByAi = await contentModerationService.CheckCommentAsync(comment.Text);
-        return comment;
+        return new CheckCommentOutput(comment);
     }
 
     [Activity]
-    public async Task EmailModeratorAsync(string commentId)
+    public async Task EmailModeratorAsync(EmailModeratorInput input)
     {
-        await emailService.SendModerationRequiredEmailAsync(PartitionKey, commentId);
+        await emailService.SendModerationRequiredEmailAsync(PartitionKey, input.CommentId);
     }
 
     [Activity]
-    public async Task StoreInitialCommentStateAsync(string commentId, string comment)
+    public async Task StoreInitialCommentStateAsync(StoreInitialCommentStateInput input)
     {
         await dataStorageService.CreateEntityAsync(new CommentEntity
         {
             PartitionKey = PartitionKey,
-            RowKey = commentId,
-            Comment = comment,
+            RowKey = input.CommentId,
+            Comment = input.CommentText,
             State = ModerationState.PendingAiReview,
             ManualApprovalWorkflowId = null,
         });
     }
 
     [Activity]
-    public async Task UpdateCommentWaitingManualApprovalAsync(string commentId, string workflowId)
+    public async Task UpdateCommentWaitingManualApprovalAsync(UpdateCommentWaitingManualApprovalInput input)
     {
-        var entity = await dataStorageService.GetEntityAsync(PartitionKey, commentId);
+        var entity = await dataStorageService.GetEntityAsync(PartitionKey, input.CommentId);
         if (entity == null)
         {
             throw new InvalidOperationException("Could not find workflow entity");
         }
 
         entity.State = ModerationState.PendingHumanReview;
-        entity.ManualApprovalWorkflowId = workflowId;
+        entity.ManualApprovalWorkflowId = input.WorkflowId;
         await dataStorageService.UpdateEntityAsync(entity);
     }
 
     [Activity]
-    public async Task SetCommentApprovedByAiAsync(string commentId)
+    public async Task SetCommentApprovedByAiAsync(SetCommentApprovedByAiInput input)
     {
-        var entity = await dataStorageService.GetEntityAsync(PartitionKey, commentId);
+        var entity = await dataStorageService.GetEntityAsync(PartitionKey, input.CommentId);
         if (entity == null)
         {
             throw new InvalidOperationException("Could not find workflow entity");
@@ -66,9 +68,9 @@ public class ContentModerationActivities(
     }
 
     [Activity]
-    public async Task SetCommentApprovedByHumanAsync(string commentId)
+    public async Task SetCommentApprovedByHumanAsync(SetCommentApprovedByHumanInput input)
     {
-        var entity = await dataStorageService.GetEntityAsync(PartitionKey, commentId);
+        var entity = await dataStorageService.GetEntityAsync(PartitionKey, input.CommentId);
         if (entity == null)
         {
             throw new InvalidOperationException("Could not find workflow entity");
@@ -79,9 +81,9 @@ public class ContentModerationActivities(
     }
 
     [Activity]
-    public async Task SetCommentRejectedAsync(string commentId)
+    public async Task SetCommentRejectedAsync(SetCommentRejectedInput input)
     {
-        var entity = await dataStorageService.GetEntityAsync(PartitionKey, commentId);
+        var entity = await dataStorageService.GetEntityAsync(PartitionKey, input.CommentId);
         if (entity == null)
         {
             throw new InvalidOperationException("Could not find workflow entity");

@@ -1,4 +1,5 @@
 ﻿using Temporalio.Workflows;
+using WorkflowDemos.Temporal.Dtos;
 
 namespace WorkflowDemos.Temporal;
 
@@ -9,17 +10,19 @@ public class ManualModerationWorkflow
     private bool rejected = false;
 
     [WorkflowRun]
-    public async Task<Comment> RunAsync(Comment comment)
+    public async Task<ManualModerationWorkflowOutput> RunAsync(ManualModerationWorkflowInput input)
     {
+        var comment = input.Comment;
         var workflowId = Workflow.Info.WorkflowId;
         var defaultActivityOptions = new ActivityOptions
         {
             ScheduleToCloseTimeout = TimeSpan.FromMinutes(5),
         };
 
-        await Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.UpdateCommentWaitingManualApprovalAsync(comment.Id, workflowId), defaultActivityOptions);
+        await Workflow.ExecuteActivityAsync(
+            (ContentModerationActivities x) => x.UpdateCommentWaitingManualApprovalAsync(new UpdateCommentWaitingManualApprovalInput(comment.Id, workflowId)), defaultActivityOptions);
 
-        await Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.EmailModeratorAsync(comment.Id), new()
+        await Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.EmailModeratorAsync(new EmailModeratorInput(comment.Id)), new()
         {
             ScheduleToCloseTimeout = TimeSpan.FromMinutes(30),
         });
@@ -28,16 +31,16 @@ public class ManualModerationWorkflow
         if (gotResult && approved)
         {
             comment.ApprovedByHuman = true;
-            await Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.SetCommentApprovedByHumanAsync(comment.Id), defaultActivityOptions);
+            await Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.SetCommentApprovedByHumanAsync(new SetCommentApprovedByHumanInput(comment.Id)), defaultActivityOptions);
         }
         else
         {
             // Timed out or rejected
             comment.ApprovedByHuman = false;
-            await Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.SetCommentRejectedAsync(comment.Id), defaultActivityOptions);
+            await Workflow.ExecuteActivityAsync((ContentModerationActivities x) => x.SetCommentRejectedAsync(new SetCommentRejectedInput(comment.Id)), defaultActivityOptions);
         }
 
-        return comment;
+        return new ManualModerationWorkflowOutput(comment);
     }
 
     [WorkflowSignal]
