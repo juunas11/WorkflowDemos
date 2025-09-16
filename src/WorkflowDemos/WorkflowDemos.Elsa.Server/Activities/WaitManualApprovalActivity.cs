@@ -39,7 +39,7 @@ public class WaitManualApprovalActivity : Activity
         var rejectTriggerUrl = context.GenerateBookmarkTriggerUrl(rejectBookmark.Id);
 
         entity.State = ModerationState.PendingHumanReview;
-        // Instead of storing the workflow, in ELSA's case we store the URLs to trigger approval or rejection
+        // Instead of storing the workflow ID, in ELSA's case we store the URLs to trigger approval or rejection
         entity.ManualApprovalWorkflowId = $"{approveTriggerUrl};{rejectTriggerUrl}";
         await dataStorageService.UpdateEntityAsync(entity);
     }
