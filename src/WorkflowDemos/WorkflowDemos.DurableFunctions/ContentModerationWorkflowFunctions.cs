@@ -73,6 +73,79 @@ public class ContentModerationWorkflowFunctions(
             .ToList());
     }
 
+    [Function(nameof(ContentModerationWorkflowV2))]
+    public async Task<ContentModerationWorkflowOutput> ContentModerationWorkflowV2(
+        [OrchestrationTrigger] TaskOrchestrationContext context)
+    {
+        // Get set of comments as input
+        var input = context.GetInput<ContentModerationWorkflowV2Input>();
+        if (input?.Comments == null || input.Comments.Count == 0)
+        {
+            return new ContentModerationWorkflowOutput(new List<string>());
+        }
+
+        var comments = input.Comments;
+        var doManualReview = input.DoManualReview;
+        // Set ID for all comments
+        foreach (var comment in comments)
+        {
+            comment.Id = context.NewGuid().ToString();
+        }
+
+        var storeInitialStateTasks = comments.ConvertAll(comment =>
+            context.CallActivityAsync(nameof(StoreInitialCommentState), new StoreInitialCommentStateInput(comment.Id, comment.Text)));
+        await Task.WhenAll(storeInitialStateTasks);
+
+        // Run all comments through AI content filtering
+        var contentFilteringTasks = comments.ConvertAll(comment => context.CallActivityAsync<CheckCommentOutput>(nameof(CheckComment), new CheckCommentInput(comment)));
+        // Wait for all content filtering tasks to complete
+        comments = (await Task.WhenAll(contentFilteringTasks))
+            .Select(x => x.Comment)
+            .ToList();
+
+        var updateCommentStateTasks = comments
+            .Where(comment => comment.ApprovedByAi)
+            .Select(comment =>
+                context.CallActivityAsync(nameof(SetCommentApprovedByAi), new SetCommentApprovedByAiInput(comment.Id)))
+            .ToList();
+        if (!doManualReview)
+        {
+            updateCommentStateTasks.AddRange(comments
+                .Where(comment => comment.ApprovedByAi == false)
+                .Select(comment =>
+                    context.CallActivityAsync(nameof(SetCommentRejectedNoManualReview), new SetCommentRejectedInput(comment.Id))));
+        }
+
+        await Task.WhenAll(updateCommentStateTasks);
+
+        if (doManualReview)
+        {
+            // Any comments that get a negative result go into a manual approval process (email moderator, wait for response)
+            var manualApprovalTasks = comments.ConvertAll(comment =>
+            {
+                if (comment.ApprovedByAi)
+                {
+                    // Already approved by AI, no need for manual review
+                    return Task.FromResult(new ManualModerationWorkflowOutput(comment));
+                }
+
+                return context.CallSubOrchestratorAsync<ManualModerationWorkflowOutput>(
+                    nameof(ManualModerationWorkflowFunctions.ManualModerationWorkflow),
+                    new ManualModerationWorkflowInput(comment));
+            });
+            // Wait for all manual approval tasks to complete
+            comments = (await Task.WhenAll(manualApprovalTasks))
+                .Select(x => x.Comment)
+                .ToList();
+        }
+
+        // Return accepted comments
+        return new ContentModerationWorkflowOutput(comments
+            .Where(comment => comment.ApprovedByAi || comment.ApprovedByHuman)
+            .Select(comment => comment.Text)
+            .ToList());
+    }
+
     [Function(nameof(StoreInitialCommentState))]
     public async Task StoreInitialCommentState(
         [ActivityTrigger] StoreInitialCommentStateInput input,
@@ -108,16 +181,26 @@ public class ContentModerationWorkflowFunctions(
         await dataStorageService.UpdateEntityAsync(entity);
     }
 
+    [Function(nameof(SetCommentRejectedNoManualReview))]
+    public async Task SetCommentRejectedNoManualReview(
+        [ActivityTrigger] SetCommentRejectedInput input,
+        FunctionContext executionContext)
+    {
+        var entity = await dataStorageService.GetEntityAsync(Constants.PartitionKey, input.CommentId);
+        entity!.State = ModerationState.Rejected;
+        await dataStorageService.UpdateEntityAsync(entity);
+    }
+
     [Function("ContentModerationWorkflow_HttpStart")]
     public static async Task<HttpResponseData> ContentModerationWorkflowHttpStart(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
         [DurableClient] DurableTaskClient client,
         FunctionContext executionContext)
     {
-        var requestBody = await req.ReadFromJsonAsync<ContentModerationWorkflowInput>();
+        var requestBody = await req.ReadFromJsonAsync<ContentModerationWorkflowV2Input>();
 
         string instanceId = await client.ScheduleNewOrchestrationInstanceAsync(
-            nameof(ContentModerationWorkflow),
+            nameof(ContentModerationWorkflowV2),
             requestBody);
 
         return await client.CreateCheckStatusResponseAsync(req, instanceId);

@@ -13,6 +13,7 @@ public class DurableFunctionsIntegrationService(IHttpClientFactory httpClientFac
             {
                 Text = c
             }).ToList(),
+            DoManualReview = false
         });
         response.EnsureSuccessStatusCode();
     }

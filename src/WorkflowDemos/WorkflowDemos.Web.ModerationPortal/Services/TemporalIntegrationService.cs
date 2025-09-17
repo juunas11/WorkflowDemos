@@ -17,6 +17,7 @@ public class TemporalIntegrationService(ITemporalClient temporalClient) : IOrche
                     {
                         Text = c
                     }).ToList(),
+                    DoManualReview = false
                 }
             ],
             new WorkflowOptions(Guid.NewGuid().ToString(), "CONTENT_MODERATION_TASK_QUEUE"));
