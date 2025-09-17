@@ -15,6 +15,7 @@ public class ElsaIntegrationService(
             {
                 Text = c
             }).ToList(),
+            DoManualReview = false
         });
         // ELSA does not support chunked transfer encoding
         // This works around that

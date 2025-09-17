@@ -3,4 +3,5 @@
 public class WorkflowInput
 {
     public required List<Comment> Comments { get; set; }
+    public bool DoManualReview { get; set; }
 }
