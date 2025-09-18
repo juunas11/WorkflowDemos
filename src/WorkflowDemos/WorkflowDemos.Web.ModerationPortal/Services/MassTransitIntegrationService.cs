@@ -16,6 +16,7 @@ public class MassTransitIntegrationService(
         var response = await httpClient.PostAsJsonAsync(_startUrl, new
         {
             Comments = comments.ToList(),
+            DoManualReview = false
         });
         response.EnsureSuccessStatusCode();
     }

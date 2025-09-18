@@ -10,4 +10,7 @@ public class CommentModerationState : SagaStateMachineInstance
     public string? CommentText { get; set; }
     public bool ApprovedByAi { get; set; }
     public bool ApprovedByHuman { get; set; }
+
+    // V2
+    public bool? DoManualReview { get; set; } = null;
 }

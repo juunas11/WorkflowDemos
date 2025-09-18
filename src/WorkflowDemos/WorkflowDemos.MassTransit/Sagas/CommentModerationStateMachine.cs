@@ -9,6 +9,7 @@ public class CommentModerationStateMachine : MassTransitStateMachine<CommentMode
     public CommentModerationStateMachine()
     {
         Event(() => CommentSubmitted, x => x.CorrelateById(context => context.Message.CommentId));
+        Event(() => CommentSubmittedV2, x => x.CorrelateById(context => context.Message.CommentId));
         Event(() => CommentInitialStateStored, x => x.CorrelateById(context => context.Message.CommentId));
         Event(() => CommentApprovedByAi, x => x.CorrelateById(context => context.Message.CommentId));
         Event(() => CommentRejectedByAi, x => x.CorrelateById(context => context.Message.CommentId));
@@ -24,13 +25,28 @@ public class CommentModerationStateMachine : MassTransitStateMachine<CommentMode
                 {
                     context.Saga.CorrelationId = context.Message.CommentId;
                     context.Saga.CommentText = context.Message.CommentText;
+                    context.Saga.DoManualReview = true; // V1 always does manual review if AI rejects
                 })
                 .PublishAsync(context => context.Init<StoreInitialCommentState>(new
                 {
                     CommentId = context.Saga.CorrelationId,
                     CommentText = context.Message.CommentText,
                 }))
-                .TransitionTo(StoringInitialState));
+                .TransitionTo(StoringInitialState),
+            When(CommentSubmittedV2)
+                .Then(context =>
+                {
+                    context.Saga.CorrelationId = context.Message.CommentId;
+                    context.Saga.CommentText = context.Message.CommentText;
+                    context.Saga.DoManualReview = context.Message.DoManualReview;
+                })
+                .PublishAsync(context => context.Init<StoreInitialCommentState>(new
+                {
+                    CommentId = context.Saga.CorrelationId,
+                    CommentText = context.Message.CommentText,
+                }))
+                .TransitionTo(StoringInitialState)
+        );
 
         During(StoringInitialState,
             When(CommentInitialStateStored)
@@ -52,15 +68,25 @@ public class CommentModerationStateMachine : MassTransitStateMachine<CommentMode
                 }))
                 .TransitionTo(SavingResult),
             When(CommentRejectedByAi)
-                .PublishAsync(context => context.Init<SetCommentPendingHumanReview>(new
-                {
-                    CommentId = context.Saga.CorrelationId,
-                }))
-                .PublishAsync(context => context.Init<EmailModerator>(new
-                {
-                    CommentId = context.Saga.CorrelationId,
-                }))
-                .TransitionTo(PendingHumanReview)
+                .IfElse(context => context.Saga.DoManualReview.GetValueOrDefault(true),
+                    then => then
+                        .PublishAsync(context => context.Init<SetCommentPendingHumanReview>(new
+                        {
+                            CommentId = context.Saga.CorrelationId,
+                        }))
+                        .PublishAsync(context => context.Init<EmailModerator>(new
+                        {
+                            CommentId = context.Saga.CorrelationId,
+                        }))
+                        .TransitionTo(PendingHumanReview),
+                    @else => @else
+                        .PublishAsync(context => context.Init<SaveResult>(new
+                        {
+                            CommentId = context.Saga.CorrelationId,
+                            ApprovedByAi = false,
+                            ApprovedByHuman = false,
+                        }))
+                        .TransitionTo(SavingResult))
         );
 
         During(PendingHumanReview,
@@ -94,6 +120,7 @@ public class CommentModerationStateMachine : MassTransitStateMachine<CommentMode
     }
 
     public Event<SubmitComment> CommentSubmitted { get; private set; } = null!;
+    public Event<SubmitCommentV2> CommentSubmittedV2 { get; private set; } = null!;
     public Event<CommentInitialStateStored> CommentInitialStateStored { get; private set; } = null!;
     public Event<CommentApprovedByAi> CommentApprovedByAi { get; private set; } = null!;
     public Event<CommentRejectedByAi> CommentRejectedByAi { get; private set; } = null!;
