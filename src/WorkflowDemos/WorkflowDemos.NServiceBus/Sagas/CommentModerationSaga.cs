@@ -6,6 +6,7 @@ namespace WorkflowDemos.NServiceBus.Sagas;
 public class CommentModerationSaga :
     Saga<CommentModerationSagaData>,
     IAmStartedByMessages<SubmitComment>,
+    IAmStartedByMessages<SubmitCommentV2>,
     IHandleMessages<CommentInitialStateStored>,
     IHandleMessages<CommentApprovedByAi>,
     IHandleMessages<CommentRejectedByAi>,
@@ -17,6 +18,7 @@ public class CommentModerationSaga :
     {
         mapper.MapSaga(saga => saga.CommentId)
             .ToMessage<SubmitComment>(message => message.CommentId)
+            .ToMessage<SubmitCommentV2>(message => message.CommentId)
             .ToMessage<CommentApprovedByAi>(message => message.CommentId)
             .ToMessage<CommentApprovedByHuman>(message => message.CommentId)
             .ToMessage<CommentInitialStateStored>(message => message.CommentId)
@@ -32,6 +34,23 @@ public class CommentModerationSaga :
         Data.CommentText = message.CommentText;
         Data.ApprovedByAi = false;
         Data.ApprovedByHuman = false;
+        Data.DoManualReview = true; // V1 always does manual review if AI rejects
+
+        return context.Send(new StoreInitialCommentState
+        {
+            CommentId = Data.CommentId,
+            CommentText = Data.CommentText!,
+        });
+    }
+
+    public Task Handle(SubmitCommentV2 message, IMessageHandlerContext context)
+    {
+        Data.CurrentState = CommentModerationState.StoringInitialState;
+        Data.CommentId = message.CommentId;
+        Data.CommentText = message.CommentText;
+        Data.ApprovedByAi = false;
+        Data.ApprovedByHuman = false;
+        Data.DoManualReview = message.DoManualReview;
 
         return context.Send(new StoreInitialCommentState
         {
@@ -79,16 +98,35 @@ public class CommentModerationSaga :
             throw new InvalidOperationException($"Invalid state: {Data.CurrentState}");
         }
 
-        Data.CurrentState = CommentModerationState.PendingHumanReview;
         Data.ApprovedByAi = false;
-        await context.Send(new SetCommentPendingHumanReview
+
+        var doManualReview = Data.DoManualReview ?? true;
+        if (!doManualReview)
         {
-            CommentId = Data.CommentId,
-        });
-        await context.Send(new EmailModerator
+            // If manual review is not required, reject the comment directly
+            Data.CurrentState = CommentModerationState.SavingResult;
+            Data.ApprovedByHuman = false;
+
+            await context.Send(new SaveResult
+            {
+                CommentId = Data.CommentId,
+                ApprovedByAi = false,
+                ApprovedByHuman = false,
+            });
+        }
+        else
         {
-            CommentId = Data.CommentId,
-        });
+            Data.CurrentState = CommentModerationState.PendingHumanReview;
+
+            await context.Send(new SetCommentPendingHumanReview
+            {
+                CommentId = Data.CommentId,
+            });
+            await context.Send(new EmailModerator
+            {
+                CommentId = Data.CommentId,
+            });
+        }
     }
 
     public Task Handle(CommentApprovedByHuman message, IMessageHandlerContext context)

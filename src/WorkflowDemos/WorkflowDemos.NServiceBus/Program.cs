@@ -28,15 +28,16 @@ builder.Services.AddTableStorageService(builder.Configuration["Storage:Connectio
 
 var app = builder.Build();
 
-app.MapPost("/comments", async (IMessageSession messageSession, OrchestrationInput input) =>
+app.MapPost("/comments", async (IMessageSession messageSession, OrchestrationInputV2 input) =>
 {
     foreach (var comment in input.Comments)
     {
         var commentId = Guid.NewGuid();
-        await messageSession.Send(new SubmitComment
+        await messageSession.Send(new SubmitCommentV2
         {
             CommentId = commentId,
             CommentText = comment,
+            DoManualReview = input.DoManualReview
         });
     }
 
