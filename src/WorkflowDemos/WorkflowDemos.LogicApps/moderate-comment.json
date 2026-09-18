@@ -14,7 +14,10 @@
               "Comment": {
                 "type": "string"
               }
-            }
+            },
+            "required": [
+              "Comment"
+            ]
           },
           "relativePath": "/comments"
         }
@@ -142,49 +145,87 @@
         },
         "else": {
           "actions": {
-            "Set_State_PendingHumanReview": {
-              "type": "ApiConnection",
+            "Wait_for_manual_review": {
+              "type": "HttpWebhook",
               "inputs": {
-                "host": {
-                  "connection": {
-                    "name": "@parameters('$connections')['azuretables']['connectionId']"
+                "subscribe": {
+                  "method": "POST",
+                  "uri": "<YOUR MODERATION PORTAL URL>/api/logicapps/manual-approvals/subscriptions",
+                  "headers": {
+                    "Content-Type": "application/json"
+                  },
+                  "body": {
+                    "CommentId": "@variables('CommentId')",
+                    "CallbackUrl": "@{listCallbackUrl()}"
                   }
                 },
-                "method": "patch",
-                "body": {
-                  "State": "PendingHumanReview",
-                  "ManualApprovalWorkflowId": "@variables('CommentId')"
-                },
-                "headers": {
-                  "If-Match": "*"
-                },
-                "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities/etag(PartitionKey='@{encodeURIComponent('LogicApps')}',RowKey='@{encodeURIComponent(variables('CommentId'))}')"
-              }
+                "unsubscribe": {
+                  "method": "DELETE",
+                  "uri": "@concat('<YOUR MODERATION PORTAL URL>/api/logicapps/manual-approvals/subscriptions/', variables('CommentId'))"
+                }
+              },
+              "runAfter": {}
             },
-            "Send_Email": {
-              "type": "Http",
-              "inputs": {
-                "uri": "https://api.mailgun.net/v3/<YOUR MAILGUN DOMAIN>/messages",
-                "method": "POST",
-                "headers": {
-                  "Content-Type": "application/x-www-form-urlencoded"
-                },
-                "body": "@concat('from=', encodeUriComponent('<YOUR SENDER>'), '&to=', encodeUriComponent('<YOUR RECEIVER>'), '&subject=', encodeUriComponent('Manual Moderation Required'), '&text=', encodeUriComponent('A comment requires manual moderation. Please review it in the moderation portal: https://localhost:7190. Partition key: LogicApps. Row key: '), variables('CommentId'))",
-                "authentication": {
-                  "type": "Basic",
-                  "username": "api",
-                  "password": "<YOUR MAILGUN API KEY>"
+            "If_approved_by_human": {
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@body('Wait_for_manual_review')?['IsApproved']",
+                      true
+                    ]
+                  }
+                ]
+              },
+              "actions": {
+                "Set_State_ApprovedByHuman": {
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['azuretables']['connectionId']"
+                      }
+                    },
+                    "method": "patch",
+                    "body": {
+                      "State": "ApprovedByHuman",
+                      "ManualApprovalWorkflowId": null
+                    },
+                    "headers": {
+                      "If-Match": "*"
+                    },
+                    "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities/etag(PartitionKey='@{encodeURIComponent('LogicApps')}',RowKey='@{encodeURIComponent(variables('CommentId'))}')"
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Set_State_Rejected": {
+                    "type": "ApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connection": {
+                          "name": "@parameters('$connections')['azuretables']['connectionId']"
+                        }
+                      },
+                      "method": "patch",
+                      "body": {
+                        "State": "Rejected",
+                        "ManualApprovalWorkflowId": null
+                      },
+                      "headers": {
+                        "If-Match": "*"
+                      },
+                      "path": "/v2/storageAccounts/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/tables/@{encodeURIComponent('WorkflowEntities')}/entities/etag(PartitionKey='@{encodeURIComponent('LogicApps')}',RowKey='@{encodeURIComponent(variables('CommentId'))}')"
+                    }
+                  }
                 }
               },
               "runAfter": {
-                "Set_State_PendingHumanReview": [
+                "Wait_for_manual_review": [
                   "Succeeded"
                 ]
-              },
-              "runtimeConfiguration": {
-                "contentTransfer": {
-                  "transferMode": "Chunked"
-                }
               }
             }
           }

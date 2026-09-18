@@ -66,7 +66,11 @@ Something like this:
 }
 ```
 
-The Logic Apps can be setup using the JSON found in the WorkflowDemos.LogicApps folder.
+The Logic Apps sample now uses a single stateful workflow definition in [moderate-comment.json](./src/WorkflowDemos/WorkflowDemos.LogicApps/moderate-comment.json).
+That workflow uses the HTTP Webhook action to wait for the manual moderation decision, so the moderation portal must expose these callback subscription endpoints:
+
+- `https://localhost:7190/api/logicapps/manual-approvals/subscriptions`
+- `https://localhost:7190/api/logicapps/manual-approvals/subscriptions/{commentId}`
 
 The moderation portal requires some user secrets as well:
 
@@ -76,8 +80,7 @@ The moderation portal requires some user secrets as well:
     "ConnectionString": "UseDevelopmentStorage=True"
   },
   "LogicApps": {
-    "ContentModerationWorkflowStartUrl": "<your-moderate-comments-logic-app-trigger-url>",
-    "ModerationDecisionUrl": "<your-manual-moderation-logic-app-trigger-url>"
+    "ContentModerationWorkflowStartUrl": "<your-single-logic-app-trigger-url>"
   },
   "PowerAutomate": {
     "ContentModerationWorkflowStartUrl": "<your-moderate-comments-power-automate-trigger-url>",
@@ -85,3 +88,5 @@ The moderation portal requires some user secrets as well:
   }
 }
 ```
+
+For the Logic Apps sample, the moderation portal also needs the Mailgun, `ModeratorEmail`, and `ModerationPortalUrl` settings from the earlier user-secrets example because it now sends the manual-review email after registering the webhook callback URL.
