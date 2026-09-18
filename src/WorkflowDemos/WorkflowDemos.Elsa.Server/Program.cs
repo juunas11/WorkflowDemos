@@ -3,11 +3,7 @@ using Elsa.EntityFrameworkCore.Extensions;
 using Elsa.EntityFrameworkCore.Modules.Management;
 using Elsa.EntityFrameworkCore.Modules.Runtime;
 using Elsa.Extensions;
-using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Workflows;
-using Elsa.Workflows.Runtime;
 using Microsoft.AspNetCore.Mvc;
-using WorkflowDemos.Elsa.Server;
 using WorkflowDemos.Elsa.Server.Types;
 using WorkflowDemos.Shared.DataStorage;
 using WorkflowDemos.Shared.Email;
@@ -39,8 +35,8 @@ builder.Services
         })
         .UseWorkflowRuntime(runtime => runtime.UseEntityFrameworkCore(ef => ef.UseSqlite()))
         .UseScheduling()
-        .UseJavaScript()
-        .UseLiquid()
+        .UseJavaScript((Elsa.Expressions.JavaScript.Features.JavaScriptFeature f) => { })
+        .UseLiquid((Elsa.Expressions.Liquid.Features.LiquidFeature f) => { })
         .UseCSharp((CSharpOptions opts) =>
         {
             opts.Assemblies.Add(typeof(Comment).Assembly);
